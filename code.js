@@ -32,23 +32,9 @@ function addEventListeners(){
 
 let currentStateIndex;
 
+let bIsSecondAttempt = false;
 function getNextQuestion(){
-    if (arrDone.length === arrAllStates.length){
-        
-        /* if (arrWrong.length > 0){
-            let t = confirm("done. do you want to attempt the wrong ones again?")
-            if (t){
-                arrDone = JSON.parse(JSON.stringify(arrCorrect));
-                arrWrong = [];
-                getNextQuestion();
-            }
-        } else {
-            alert ("done. refresh page to start again.");
-        } */
-
-        alert ("done. refresh page to start again.");
-        return;
-    } 
+     
 
     let nCurrentIndex
     do {
@@ -84,12 +70,58 @@ function stateClicked(event){
         markAns("wrong");
     }
 
-    getNextQuestion();
+    //wait for some time before going to next question. fixes issue of alert appearing before color change
+    //setTimeout(getNextQuestion, 100);
+
+    if (checkIfAllQuestionsDone()){
+        // setTimeout(getNextQuestion, 200);
+        getNextQuestion();
+    }
 }
 
+function checkIfAllQuestionsDone(){
+    let bProgressNeeded = true;
+
+    if (arrDone.length === arrAllStates.length){    
+        if (arrWrong.length > 0){
+            let t = confirm("done. do you want to attempt the wrong ones again?")
+            if (t){
+                bIsSecondAttempt = true;
+                arrDone = JSON.parse(JSON.stringify(arrCorrect));
+                arrWrong = [];
+                bProgressNeeded = true;
+            }else{
+                bProgressNeeded = false;
+            }
+        } else {
+            bProgressNeeded = false;
+            //alert ("all complete. refresh page to start again.");
+            console.log ("all complete. refresh page to start again.");
+            
+        }
+
+    // alert ("done. refresh page to start again.");
+    
+    }
+
+    return bProgressNeeded;
+}
+
+
 function markAns(param){
+    console.log("marking ans", param)
     let t = arrDone.length - 1;
-    let elem = $('.bullet')[t];
+    
+    let elem;
+    
+    if (bIsSecondAttempt)
+    {   
+        elem = $('.wrongBullet')[0];
+        elem.classList.remove("wrongBullet");
+    }else {
+        elem = $('.bullet')[t];
+    }
+    
 
     let statePathID = arrAllStates[currentStateIndex];
     let statePath = $("#" + statePathID)[0];
