@@ -12,6 +12,45 @@
             width: 50vw;
         }
 
+        .dsplyNone{
+          display: none;
+        }
+
+        .hddn{
+          opacity: 0;
+        }
+
+        .topAlertHolder{
+          position: absolute;
+          width: 100vw;
+          height: 2em;
+          top: 0px;
+          left: 0px;
+          
+        }
+
+        .noWrong{
+          background-color: lightgreen;
+        }
+
+        .someWrong{
+          background-color: lightsalmon;
+        }
+
+        .alertMessage,.dvLink{
+          font-size: 0.8em;
+          text-align: center;
+          font-family: sans-serif;
+        }
+
+        .dvLink{
+          text-decoration: underline;
+        }
+
+        .noWrong > .alertMessage{
+          padding: 0.8em;
+        }
+
         @media only screen and (max-width: 600px) {
             
             .svgStyle{
@@ -72,6 +111,10 @@
     </style>
 </head>
 <body onload="init();">
+  <div class="topAlertHolder flx vrt hddn">
+    <div class="alertMessage">You have some states wrong.</div>
+    <div class="dvLink dsplyNone">try again</div>
+  </div>
     <div class="flx mainContainer vrt">
         <div class="flx vrt bulletHolderMain">
             <!-- container to house indicators for questions answered correct, incorrect, and pending  -->
