@@ -1,6 +1,7 @@
 let dataState_full = {"mh":["Maharashtra","mumbai"],"gj":["gujarat","gandhinagar"],"jh":["Jharkhand","Ranchi","Jharkhand","Ranchi"],"up":["UP","Lucknow"],"hp":["Himachal","Shimla"],"kl":["Kerala","Trivandrum"],"ka":["Karnataka","Banglore"],"ga":["Goa","Panaji"],"tn":["Tamil Nadu","Chennai"],"ap":["Andhra Pradesh","Amravati"],"tg":["Telangana","Hyderabad"],"ct":["Chattisgarh","Raipur"],"or":["Oddisha","Bhubaneswar"],"br":["Bihar","Patna"],"mp":["Madhya Pradesh"],"rj":["Rajasthan","Jaipur"],"pb":["Punjab","Chandigarh"],"hr":["Haryana","Chandigarh"],"ut":["Uttarakhand","Dehradun"],"sk":["Sikkim","Gangtok"],"wb":["West Bengal","Kolkatta"],"ar":["Arunachal Pradesh","Itanagar"],"as":["Assam","Dispur"],"nl":["Nagaland","Kohima"],"mn":["Manipur","Imphal"],"mz":["Mizoram","Aizawl"],"tr":["Tripura","Agartala"],"ml":["Meghalaya","Shillong"]}
 
-let dataState_shortened = {"mh":["Maharashtra","mumbai"],"gj":["gujarat","gandhinagar"],"kl":["Kerala","Trivandrum"],"ka":["Karnataka","Banglore"],"ga":["Goa","Panaji"],"tn":["Tamil Nadu","Chennai"]}
+// let dataState_shortened = {"mh":["Maharashtra","mumbai"],"gj":["gujarat","gandhinagar"],"kl":["Kerala","Trivandrum"],"ka":["Karnataka","Banglore"],"ga":["Goa","Panaji"],"tn":["Tamil Nadu","Chennai"]}
+let dataState_shortened = {"mh":["Maharashtra","mumbai"],"gj":["gujarat","gandhinagar"],"wb":["West Bengal","Kolkatta"], "tn":["Tamil Nadu","Chennai"]}
 
 let dataState;
 
@@ -10,6 +11,9 @@ let arrWrong = [];
 let arrDone = [];
 
 let NUM_STATES;
+
+//states WB and TN are made up of paths 
+let arrSpecialStates = ["wb", "tn"]
 
 // console.log("127");
 function init(){
@@ -23,6 +27,20 @@ function init(){
 
     arrAllStates = Object.keys(dataState);
     NUM_STATES = arrAllStates.length - 1;
+
+    //add cls-2 for event listeners to all paths that have two character IDs - that is all states and Delhi
+    document.querySelectorAll("path").forEach(function(elem){
+        if (elem.id.length === 2){
+            elem.classList.add("cls-2");
+        }
+    })
+
+    
+    
+    arrSpecialStates.forEach(function(elem){
+        document.querySelector("#" + elem).classList.add("cls-2");
+    })
+
 
     // Add question indicators - referred here as bullets
     let arrBulletHolders = document.querySelectorAll('.bulletHolder');
@@ -40,6 +58,8 @@ function init(){
 function addEventListeners(){
     $('.cls-2').on("click", stateClicked)
     // $('.cls-2').on("click", stateClicked2)
+
+    
 }
 
 let currentStateIndex;
@@ -65,8 +85,19 @@ function getNextQuestion(){
 
 
 function stateClicked(event){
-    //console.log(event.target.id);
+    // event.stopPropogation();
+    // console.log("A")
+    // console.log(event.target.id);
     let clickedStateId = event.target.id;
+    
+    //for wb and tn
+    if (clickedStateId.indexOf("path") === 0){
+        clickedStateId = document.querySelector("#" + clickedStateId).parentElement.id;
+        // console.log("updated clickedStateId is", clickedStateId)
+    }
+
+    
+
     let correctAns = arrAllStates[currentStateIndex];
 
     // console.log("clickedStateId", clickedStateId);
@@ -76,7 +107,7 @@ function stateClicked(event){
     if (clickedStateId === correctAns){
         // alert("correct")
         // console.log("correct");
-        markAns("correct");
+        markAns("correct", clickedStateId);
     } else {
         // console.log("wrong");
         markAns("wrong", clickedStateId);
@@ -163,6 +194,8 @@ function markAns(param, clickedStateId){
     // console.log("marking ans", param)
     let t = arrDone.length - 1;
     
+    
+
     let elem;
     let clickedElem = $("#" + clickedStateId)[0];
     
@@ -181,17 +214,85 @@ function markAns(param, clickedStateId){
     if (param === "correct"){
         arrCorrect.push(currentStateIndex);
         elem.classList.add("correctBullet");
-        statePath.style.fill = "lightgreen";
 
+        /* if (arrSpecialStates.indexOf(clickedStateId) > -1){
+            fillAllPaths()
+        }
+        statePath.style.fill = "lightgreen"; */
+        fillColor(clickedStateId, "correct");
+
+        playSound("correct");
     
     } else if (param === "wrong"){
         arrWrong.push(currentStateIndex);
         elem.classList.add("wrongBullet");
-        clickedElem.style.fill = "lightsalmon";
-        clickedElem.classList.add("wrongFill");
+
+        /* if (arrSpecialStates.indexOf(clickedStateId) > -1){
+            fillAllPaths(clickedStateId);
+        }
+        else {
+            clickedElem.style.fill = "lightsalmon";
+            clickedElem.classList.add("wrongFill");
+        } */
+        fillColor(clickedStateId, "incorrect");
+        playSound("incorrect");
+        
         setTimeout(removeIncorrectFill, 500)
 
     }
+}
+
+function fillColor(clickedStateId, correctIncorrect){
+    //console.log(clickedStateId, correctIncorrect)
+
+    let colorToFill = "";
+    if (correctIncorrect === "correct"){
+        colorToFill = "lightgreen";
+    }else {
+        colorToFill = "lightsalmon";
+    }
+
+    let bIsSpecialState = false;
+    if (arrSpecialStates.indexOf(clickedStateId) > -1){
+        bIsSpecialState = true;
+    }
+
+    if (bIsSpecialState){
+        let arrC = Array.from($("#" + clickedStateId).children());
+        arrC.forEach(function(elem){
+            elem.style.fill = colorToFill;
+            if (correctIncorrect === "incorrect"){
+                elem.classList.add("wrongFill");
+            }
+        })
+    } else {
+        $("#" + clickedStateId)[0].style.fill = colorToFill;
+        if (correctIncorrect === "incorrect"){
+            $("#" + clickedStateId)[0].classList.add("wrongFill");
+        }
+    }
+
+    if (correctIncorrect === "incorrect")
+    {
+        setTimeout(removeIncorrectFill, 500)
+    }
+    
+
+}
+
+function playSound(param){
+    let oAudio;
+    if (param === "correct"){
+        oAudio = document.querySelector("#correctAudio");
+    }else{
+        oAudio = document.querySelector("#inCorrectAudio");
+    }
+    
+    oAudio.play();
+}
+
+function fillAllPaths(param){
+    
 }
 
 function removeIncorrectFill(){
