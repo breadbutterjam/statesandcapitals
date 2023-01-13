@@ -1,7 +1,9 @@
-let dataState_full = {"mh":["Maharashtra","mumbai"],"gj":["gujarat","gandhinagar"],"jh":["Jharkhand","Ranchi"],"up":["UP","Lucknow"],"hp":["Himachal","Shimla"],"kl":["Kerala","Trivandrum"],"ka":["Karnataka","Banglore"],"ga":["Goa","Panaji"],"tn":["Tamil Nadu","Chennai"],"ap":["Andhra Pradesh","Amravati"],"tg":["Telangana","Hyderabad"],"ct":["Chattisgarh","Raipur"],"or":["Oddisha","Bhubaneswar"],"br":["Bihar","Patna"],"mp":["Madhya Pradesh", "Bhopal"],"rj":["Rajasthan","Jaipur"],"pb":["Punjab","Chandigarh"],"hr":["Haryana","Chandigarh"],"ut":["Uttarakhand","Dehradun"],"sk":["Sikkim","Gangtok"],"wb":["West Bengal","Kolkatta"],"ar":["Arunachal Pradesh","Itanagar"],"as":["Assam","Dispur"],"nl":["Nagaland","Kohima"],"mn":["Manipur","Imphal"],"mz":["Mizoram","Aizawl"],"tr":["Tripura","Agartala"],"ml":["Meghalaya","Shillong"]};
+let dataState_full = {"mh":["Maharashtra","mumbai"],"gj":["gujarat","gandhinagar"],"jh":["Jharkhand","Ranchi"],"up":["Uttar Pradesh","Lucknow"],"hp":["Himachal","Shimla"],"kl":["Kerala","Trivandrum"],"ka":["Karnataka","Banglore"],"ga":["Goa","Panaji"],"tn":["Tamil Nadu","Chennai"],"ap":["Andhra Pradesh","Amravati"],"tg":["Telangana","Hyderabad"],"ct":["Chattisgarh","Raipur"],"or":["Odisha","Bhubaneswar"],"br":["Bihar","Patna"],"mp":["Madhya Pradesh", "Bhopal"],"rj":["Rajasthan","Jaipur"],"pb":["Punjab","Chandigarh"],"hr":["Haryana","Chandigarh"],"ut":["Uttarakhand","Dehradun"],"sk":["Sikkim","Gangtok"],"wb":["West Bengal","Kolkatta"],"ar":["Arunachal Pradesh","Itanagar"],"as":["Assam","Dispur"],"nl":["Nagaland","Kohima"],"mn":["Manipur","Imphal"],"mz":["Mizoram","Aizawl"],"tr":["Tripura","Agartala"],"ml":["Meghalaya","Shillong"]};
 
 // let dataState_shortened = {"mh":["Maharashtra","mumbai"],"gj":["gujarat","gandhinagar"],"kl":["Kerala","Trivandrum"],"ka":["Karnataka","Banglore"],"ga":["Goa","Panaji"],"tn":["Tamil Nadu","Chennai"]}
 let dataState_shortened = {"mh":["Maharashtra","mumbai"],"gj":["gujarat","gandhinagar"],"wb":["West Bengal","Kolkatta"], "tn":["Tamil Nadu","Chennai"]}
+
+let dataState_shortenedNE = {"sk":["Sikkim","Gangtok"],"ar":["Arunachal Pradesh","Itanagar"],"as":["Assam","Dispur"],"nl":["Nagaland","Kohima"],"mn":["Manipur","Imphal"],"mz":["Mizoram","Aizawl"],"tr":["Tripura","Agartala"],"ml":["Meghalaya","Shillong"]};
 
 let dataState;
 
@@ -27,7 +29,12 @@ function init(){
     if (t.length === 1){
         dataState = JSON.parse(JSON.stringify(dataState_full));
     } else if (t.length > 1){
-        dataState = JSON.parse(JSON.stringify(dataState_shortened));
+        if (t[1].indexOf("NE") > -1){
+            dataState = JSON.parse(JSON.stringify(dataState_shortenedNE));
+        } else {
+            dataState = JSON.parse(JSON.stringify(dataState_shortened));
+        }
+        
     }
 
     arrAllStates = Object.keys(dataState);
@@ -105,17 +112,6 @@ function checkAnswer(){
     console.log("userAns ", userAnswer);
     console.log("correct answer ", correctAnswer);
 
-    let bAns; 
-    if (userAnswer === correctAnswer){
-        bAns = true;
-        arrCorrect.push(currentStateIndex)
-    } else 
-    {
-        bAns = false;
-        arrWrong.push(currentStateIndex);
-    }
-
-
     let t = arrDone.length - 1;
     let bulletElem; 
 
@@ -127,12 +123,27 @@ function checkAnswer(){
         bulletElem = $('.bullet')[t];
     }
 
-    if (bAns){
+
+    let bAns; 
+    if (userAnswer === correctAnswer){
+        bAns = true;
+
+        arrCorrect.push(currentStateIndex)
         bulletElem.classList.add("correctBullet");
-        arrCorrect.push(currentStateIndex);
-    }else{
+
+        //show correct answer response message 
+        ShowAnswerResponse(true)
+
+    } else 
+    {
+        bAns = false;
+        arrWrong.push(currentStateIndex);
         bulletElem.classList.add("wrongBullet");
+
+        //show correct answer response message 
+        ShowAnswerResponse(false, correctAnswer)
     }
+
     
     // getNextQuestion();
 
@@ -145,6 +156,26 @@ function checkAnswer(){
 
     clearClicked();
 
+}
+
+function ShowAnswerResponse(isAnsCorrect, correctState){
+    $('.answerResponse')[0].classList.remove("wrongResponse");
+    $('.answerResponse')[0].classList.remove("correctResponse");
+
+    if (isAnsCorrect){
+        $('.answerResponse')[0].classList.add("correctResponse");    
+        $('.answerResponse').text("Yoohoo. That's correct!")
+    } else {
+        $('.answerResponse').text("Oops that is not right. The correct answer is " + correctState)
+        $('.answerResponse')[0].classList.add("wrongResponse");
+    }
+    $(".answerResponse")[0].classList.remove("hddn");
+
+    setTimeout(hideAnswerResponse, 1000)
+}
+
+function hideAnswerResponse(){
+    $(".answerResponse")[0].classList.add("hddn");
 }
 
 function clearClicked(event){
