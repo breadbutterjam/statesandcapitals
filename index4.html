@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>States of India</title>
+    <script src="jQuery.js"></script>
+    <script src="code4.js"></script>
+
+    <style>
+
+        body{
+            margin: 20px;
+        }
+
+        .flx{
+            display: flex;
+        }
+
+        .vrt{
+            flex-direction: column;
+        }
+
+        .tileCont{
+            width: 40%;
+            /* background-color: aqua; */
+            margin: 5%;
+            border: 1px solid black;
+
+        }
+
+        .bulletsCont{
+            width: 5%;
+            /* background-color: azure; */
+            border: 1px solid black;
+            margin-top: 5%;
+            margin-bottom: 5%;
+        }
+
+
+        .mainBodyContainer{
+            /* background-color: lightgreen; */
+            height: 90%;
+        }
+
+        .headerContainer{
+            /* background-color: lightcoral; */
+            height: 10%;
+        }
+
+        .mainCont{
+            height: 90vh;
+        }
+
+        .tile{
+            background-color: white;
+            margin: 0.4em;
+            border-radius: 0.2em;
+            padding: 0.4em;
+            border: 1px solid #00000040;
+        }
+
+        .lbl{
+            font-family: sans-serif;
+        }
+    </style>
+</head>
+<body onload="init();">
+<div class="mainCont flx vrt">
+    <div class="headerContainer"></div>
+    <!-- <div class="mainBodyContainer flx">
+        <div class="flx vrt statesCont tileCont">
+            <div class="tile">
+                <div class="lbl">Shimla Dharamashala</div>
+            </div>
+            <div class="tile">
+                <div class="lbl">Arunachal Pradesh</div>
+            </div>
+            <div class="tile">
+                <div class="lbl">Goa</div>
+            </div>
+            
+
+
+        </div>
+        <div class="flx vrt bulletsCont"></div>
+        <div class="flx vrt capitalCont tileCont"></div>
+    </div> -->
+    <div class="mainBodyContainer flx vrt">
+        <div class="flx group">
+            <div class="flx vrt statesCont tileCont">
+                <div class="tile">
+                    <div class="lbl">Goa</div>
+                </div>
+            </div>
+            <!-- <div class="flx vrt bulletsCont"></div> -->
+            <div class="flx vrt capitalCont tileCont">
+                <div class="tile">
+                    <div class="lbl">Shimla Dharamashala</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flx group">
+            <div class="flx vrt statesCont tileCont">
+                <div class="tile">
+                    <div class="lbl">Arunachal Pradesh</div>
+                </div>
+            </div>
+            <!-- <div class="flx vrt bulletsCont"></div> -->
+            <div class="flx vrt capitalCont tileCont">
+                <div class="tile">
+                    <div class="lbl">Chandigarh</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</body>
+</html>
