@@ -24,8 +24,12 @@
             width: 40%;
             /* background-color: aqua; */
             margin: 5%;
-            border: 1px solid black;
+            /* border: 1px solid black; */
 
+        }
+        .group{
+            border-bottom: 1px solid lightgray;
+            /* border-top: 1px solid lightgray; */
         }
 
         .bulletsCont{
@@ -62,43 +66,55 @@
         .lbl{
             font-family: sans-serif;
         }
+
+        .sel{
+            background-color: lightblue;
+        }
+
+        .wrng{
+            background-color: lightsalmon;
+        }
+
+        .corrct{
+            background-color: lightgreen;
+        }
+        .btnSmall{
+            margin: 0.2em;
+            border: 1px solid #00000040;
+            border-radius: 0.2em;
+            padding: 0.2em;
+        }
+
+        .disbl{
+            opacity: 0.4;
+        }
+
+        .hdn{
+            display: none;
+        }
     </style>
 </head>
 <body onload="init();">
 <div class="mainCont flx vrt">
-    <div class="headerContainer"></div>
-    <!-- <div class="mainBodyContainer flx">
-        <div class="flx vrt statesCont tileCont">
-            <div class="tile">
-                <div class="lbl">Shimla Dharamashala</div>
-            </div>
-            <div class="tile">
-                <div class="lbl">Arunachal Pradesh</div>
-            </div>
-            <div class="tile">
-                <div class="lbl">Goa</div>
-            </div>
-            
-
-
+    <div class="headerContainer flx vrt">
+        <div class="flx buttonCont">
+            <div class="btnSmall prev disbl">P</div>
+            <div class="btnSmall prev disbl">N</div>
         </div>
-        <div class="flx vrt bulletsCont"></div>
-        <div class="flx vrt capitalCont tileCont"></div>
-    </div> -->
+    </div>
     <div class="mainBodyContainer flx vrt">
-        <div class="flx group">
+        <!-- <div class="flx group">
             <div class="flx vrt statesCont tileCont">
                 <div class="tile">
-                    <div class="lbl">Goa</div>
+                    <div class="lbl"></div>
                 </div>
             </div>
-            <!-- <div class="flx vrt bulletsCont"></div> -->
             <div class="flx vrt capitalCont tileCont">
                 <div class="tile">
-                    <div class="lbl">Shimla Dharamashala</div>
+                    <div class="lbl"></div>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <div class="flx group">
             <div class="flx vrt statesCont tileCont">
