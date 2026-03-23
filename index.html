@@ -3,140 +3,966 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>States of India</title>
-    <script src="jQuery.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <script src="code.js"></script>
 
     <style>
-        #svg1625{
-            height: 80vh;
-            width: 50vw;
+        /* ── Reset & base ── */
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f7f7f7;
+            color: #222;
+            overflow-x: hidden;
         }
 
-        .dsplyNone{
-          display: none;
+        /* ── Utility ── */
+        .dsplyNone { display: none !important; }
+        .hddn      { opacity: 0; pointer-events: none; }
+
+        /* ── Top alert banner (end-of-round) ── */
+        .topAlertHolder {
+            position: fixed;
+            width: 100%;
+            top: 0; left: 0;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5em 1em;
+            transition: opacity 0.3s;
+        }
+        .noWrong  { background: #c6f0d0; }
+        .someWrong{ background: #ffd6cc; }
+        .alertMessage, .dvLink {
+            font-size: 0.85em;
+            font-family: inherit;
+            text-align: center;
+        }
+        .dvLink {
+            text-decoration: underline;
+            cursor: pointer;
+            margin-top: 2px;
         }
 
-        .hddn{
-          opacity: 0;
+        /* ── Page wrapper ── */
+        .pageWrapper {
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 12px 14px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            overflow-x: hidden;
         }
 
-        .topAlertHolder{
-          position: absolute;
-          width: 100vw;
-          height: 2em;
-          top: 0px;
-          left: 0px;
-          
+        /* ── Top bar: bullets + gear ── */
+        .topBar {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
         }
-        .footer_attribution
-        {
-          position: absolute;
-          bottom: 20px;
-          left: 0px;
-          font-size: 0.5em;
-          text-align: center;
-          width: 100%;
+        .bulletHolderMain {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .bulletHolder {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .bullet {
+            border: 1.5px solid #bbb;
+            border-radius: 50%;
+            height: 14px;
+            width:  14px;
+            background: #fff;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .correctBullet { background: #4caf50; border-color: #4caf50; }
+        .wrongBullet   { background: #e53935; border-color: #e53935; }
+
+        /* ── Right column: gear + timer ── */
+        .topBarRight {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
         }
 
-        .noWrong{
-          background-color: lightgreen;
+        /* ── Gear button ── */
+        .gearBtn {
+            flex-shrink: 0;
+            background: transparent;
+            border: none;
+            padding: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        .gearBtn svg { transition: transform 0.35s cubic-bezier(.4,2,.6,1); display: block; }
+        .gearBtn.open svg { transform: rotate(60deg); }
 
-        .someWrong{
-          background-color: lightsalmon;
+        /* ── Inline timer (under gear) ── */
+        .timerRow {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.72em;
+            font-variant-numeric: tabular-nums;
+            color: #888;
+            white-space: nowrap;
         }
-
-        .alertMessage,.dvLink{
-          font-size: 0.8em;
-          text-align: center;
-          font-family: sans-serif;
+        .timerDisplay {
+            font-weight: 700;
+            color: #444;
+            letter-spacing: 0.03em;
         }
+        .timerIcon { flex-shrink: 0; }
 
-        .dvLink{
-          text-decoration: underline;
+        /* ── Stats row ── */
+        .statsRow {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.82em;
+            font-weight: 500;
+            color: #444;
+            margin-bottom: 10px;
         }
+        .statItem { display: flex; align-items: center; gap: 4px; }
+        .statItem .statIcon { font-size: 1em; }
+        .statItem .statVal  { font-weight: 700; }
+        .statCorrect .statIcon { color: #4caf50; }
+        .statWrong   .statIcon { color: #e53935; }
+        .statStreak  .statIcon { color: #f59e0b; }
+        .statCorrect .statVal  { color: #4caf50; }
+        .statWrong   .statVal  { color: #e53935; }
+        .statStreak  .statVal  { color: #f59e0b; }
 
-        .noWrong > .alertMessage{
-          padding: 0.8em;
+        /* ── Question row ── */
+        .questionRow {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 12px;
+            min-height: 2.4em;
+            gap: 6px;
         }
+        .questionHolder {
+            font-size: 1.75em;
+            font-weight: 700;
+            text-transform: capitalize;
+            line-height: 1.2;
+            text-align: left;
+        }
+        /* ── Info icon + hint tooltip ── */
+        .infoBtn {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            position: relative;
+            align-self: center;
+        }
+        .infoBtn:hover { color: #1a73e8; }
+        .infoBtn svg { display: block; }
+        .hintTooltip {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            background: #222;
+            color: #fff;
+            font-size: 0.72em;
+            font-weight: 400;
+            line-height: 1.4;
+            padding: 7px 10px;
+            border-radius: 7px;
+            white-space: normal;
+            width: 220px;
+            z-index: 100;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+            pointer-events: none;
+        }
+        .hintTooltip::before {
+            content: '';
+            position: absolute;
+            top: -5px; left: 10px;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 5px solid #222;
+        }
+        .infoBtn.active .hintTooltip { display: block; }
 
-        @media only screen and (max-width: 600px) {
-            
-            #svg1625{
-                height: 60vh;
-                width: 90vw;
+        /* spacer pushes skip to the right */
+        .questionRowSpacer { flex: 1; }
+
+        .skipBtn {
+            flex-shrink: 0;
+            border: 1.5px solid #1a73e8;
+            background: #fff;
+            color: #1a73e8;
+            font-size: 0.78em;
+            font-weight: 600;
+            padding: 5px 11px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+        .skipBtn:hover { background: #1a73e8; color: #fff; }
+        .skipBtn .skipArrow { font-size: 1.1em; }
+
+        /* ── Map ── */
+        .mapHolder { width: 100%; overflow: hidden; position: relative; }
+        #svg1625   { width: 100%; height: auto; display: block; max-width: 100%; }
+
+        /* Hover highlight — only on devices with a real pointer (not touchscreens) */
+        @media (hover: hover) and (pointer: fine) {
+            #svg1625 .cls-2 {
+                transition: fill 0.15s ease;
+                cursor: pointer;
+            }
+            #svg1625 .cls-2:hover:not(.answered) {
+                fill: #b3d4f5 !important;
             }
         }
 
-        body{
-            margin: 20px;
+        /* ── Settings panel ── */
+        .settingsPanel {
+            position: fixed;
+            top: 44px; right: 14px;
+            z-index: 199;
+            background: #fff;
+            border: 1.5px solid #ddd;
+            border-radius: 10px;
+            padding: 1em 1.2em 1.1em;
+            min-width: 210px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+            font-family: inherit;
+            font-size: 0.85em;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.97);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
-
-        .correctBullet{
-            background-color: lightgreen;
+        .settingsPanel.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
         }
-
-        .wrongBullet{
-            background-color: red;
+        .settingsPanel h3 {
+            margin: 0 0 0.75em;
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #333;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
-
-        .flx{
+        .settingRow {
             display: flex;
-        }
-
-        .vrt{
             flex-direction: column;
+            gap: 0.45em;
+            margin-bottom: 0.9em;
         }
-
-        .mainContainer{
-            padding-top:1em;
+        .settingRow > label {
+            font-size: 0.8em;
+            color: #666;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-
-        .bulletHolder{
-            margin-bottom: 0.5em;
+        .modeOptions { display: flex; flex-direction: column; gap: 0.35em; }
+        .modeOption {
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            padding: 0.45em 0.6em;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            color: #333;
         }
-
-        .jstfyContentSpaceEvenly{
-            justify-content: space-evenly;
+        .modeOption:hover { border-color: #aaa; background: #f8f8f8; }
+        .modeOption.selected { border-color: #4a9e6b; background: #f0faf4; font-weight: 600; color: #2d7a50; }
+        .modeOption input[type="radio"] { accent-color: #4a9e6b; }
+        .applyBtn {
+            width: 100%;
+            padding: 0.5em;
+            background: #4a9e6b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.88em;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: background 0.15s;
         }
+        .applyBtn:hover { background: #3a8559; }
 
-
-
-        .bullet{
-            border: 1px solid black;
-            border-radius: 50px;
-            height: 1em;
-            width: 1em;
+        /* ── Toggle switch ── */
+        .toggleRow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.9em;
         }
+        .toggleRow > span {
+            font-size: 0.8em;
+            color: #444;
+            font-weight: 600;
+        }
+        .toggleSwitch {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        .toggleSwitch input { opacity: 0; width: 0; height: 0; }
+        .toggleSlider {
+            position: absolute;
+            inset: 0;
+            background: #ccc;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggleSlider::before {
+            content: '';
+            position: absolute;
+            width: 14px; height: 14px;
+            left: 3px; top: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggleSwitch input:checked + .toggleSlider { background: #4a9e6b; }
+        .toggleSwitch input:checked + .toggleSlider::before { transform: translateX(16px); }
 
-        .questionHolder{
+        /* ── Footer ── */
+        .footer_attribution {
             text-align: center;
-            font-size: 2em;
-            margin-top: 0.5em;
-            margin-bottom: 0.5em;
+            font-size: 0.55em;
+            color: #999;
+            margin-top: 16px;
+        }
+
+        /* ── Startup mode-picker modal ── */
+        .startModal {
+            position: fixed;
+            inset: 0;
+            z-index: 600;
+            background: linear-gradient(145deg, #1a3a2a 0%, #0d2018 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .startModal.hddn { display: none; }
+        .startCard {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .startHeader {
+            text-align: center;
+            color: #fff;
+        }
+        .startLogo { font-size: 2.8em; line-height: 1; margin-bottom: 6px; }
+        .startHeader h2 {
+            margin: 0 0 6px;
+            font-size: 1.7em;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #fff;
+        }
+        .startHeader p {
+            margin: 0;
+            font-size: 0.88em;
+            color: rgba(255,255,255,0.6);
+        }
+        .startModes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .startModeBtn {
+            background: rgba(255,255,255,0.08);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            border-radius: 14px;
+            padding: 18px 12px 16px;
+            cursor: pointer;
+            font-family: inherit;
+            color: #fff;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.15s, border-color 0.15s, transform 0.12s;
+        }
+        .startModeBtn:hover {
+            background: rgba(255,255,255,0.16);
+            border-color: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        .startModeBtn:active { transform: translateY(0); }
+        .startModeBtn--wide {
+            grid-column: 1 / -1;
+            flex-direction: row;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px 20px;
+        }
+        .startModeBtn--wide .startModeDesc { text-align: left; }
+        .startModeIcon { font-size: 1.6em; line-height: 1; }
+        .startModeName { font-size: 0.92em; font-weight: 700; letter-spacing: 0.01em; }
+        .startModeDesc { font-size: 0.68em; color: rgba(255,255,255,0.55); line-height: 1.3; }
+
+        /* ── Identify mode: isolated state view ── */
+        .isolatedMapHolder {
+            width: 100%;
+            height: 50vh;
+            background: #f0f4f0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .isolatedStateImg {
+            width: 100%;
+            height: 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .identifySkipBtn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+
+        /* ── MCQ option buttons ── */
+        .mcqOptions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .mcqBtn {
+            background: #fff;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 10px;
+            font-size: 0.88em;
+            font-weight: 600;
+            font-family: inherit;
+            color: #333;
+            cursor: pointer;
+            text-align: center;
             text-transform: capitalize;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+            line-height: 1.3;
+        }
+        .mcqBtn:hover:not(:disabled) { border-color: #1a73e8; background: #f0f6ff; color: #1a73e8; }
+        .mcqBtn.correct  { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; pointer-events: none; }
+        .mcqBtn.wrong    { border-color: #e53935; background: #ffebee; color: #c62828; pointer-events: none; }
+        .mcqBtn.reveal   { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; pointer-events: none; }
+        .mcqBtn:disabled { opacity: 0.5; cursor: default; }
+
+        /* ── Flashcard panel ── */
+        .flashcardPanel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        /* Practice mode nav row */
+        .fcPracticeNav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .fcPracticeName {
+            font-size: 1.4em;
+            font-weight: 800;
+            text-align: center;
+            text-transform: capitalize;
+            color: #1a1a1a;
+            letter-spacing: -0.01em;
+            flex: 1;
+        }
+        .fcNavBtn {
+            flex-shrink: 0;
+            background: #fff;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 0.85em;
+            font-weight: 600;
+            color: #444;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
+            white-space: nowrap;
+        }
+        .fcNavBtn:hover { border-color: #1a73e8; background: #f0f6ff; color: #1a73e8; }
+        /* Quiz mode spacer keeps image from jumping up */
+        .fcQuizSpacer {
+            height: 2.2em;
+        }
+        .flashcardImgHolder {
+            width: 100%;
+            height: 50vh;
+            background-color: #f0f4f0;
+            background-repeat: no-repeat;
+            background-position: center;
+            border-radius: 14px;
+            position: relative;
+        }
+        .flashcardImgHolder .fcLoadError {
+            font-size: 0.78em;
+            color: #aaa;
+            text-align: center;
+            padding: 20px;
+        }
+        /* Easy mode: 4 MCQ buttons (reuse .mcqOptions/.mcqBtn) */
+
+        /* Quiz: dropdown + skip + submit row */
+        .flashcardDropdownRow {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+        .flashcardSelect {
+            flex: 1;
+            padding: 11px 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9em;
+            background: #fff;
+            color: #222;
+            cursor: pointer;
+            appearance: auto;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        .flashcardSelect:focus { border-color: #1a73e8; }
+        .flashcardSubmit {
+            padding: 11px 20px;
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9em;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .flashcardSubmit:hover { background: #1558b0; }
+        .flashcardSubmit:disabled { background: #aaa; cursor: default; }
+        .flashcardSkip {
+            padding: 11px 16px;
+            background: #fff;
+            color: #888;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: border-color 0.15s, color 0.15s;
+        }
+        .flashcardSkip:hover { border-color: #aaa; color: #444; }
+        .flashcardSkip:disabled { opacity: 0.4; cursor: default; }
+        /* Feedback — overlaid on top of the state image */
+        .flashcardFeedback {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9em;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            z-index: 10;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .flashcardFeedback.fc-correct { background: #2e7d32; color: #fff; opacity: 1; }
+        .flashcardFeedback.fc-wrong   { background: #c62828; color: #fff; opacity: 1; }
+        .flashcardFeedback.fc-empty   { opacity: 0; }
+
+        /* ── Spot the State panel ── */
+        .spotMcqPanel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .spotMcqRow {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .spotMcqOptions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+        .spotMcqSkip {
+            align-self: stretch;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        /* Feedback overlay on the map for spot-mcq mode */
+        .spotMcqMapFeedback {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9em;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            z-index: 10;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .spotMcqMapFeedback.fc-correct { background: #2e7d32; color: #fff; opacity: 1; }
+        .spotMcqMapFeedback.fc-wrong   { background: #c62828; color: #fff; opacity: 1; }
+        .spotMcqMapFeedback.fc-empty   { opacity: 0; }
+
+        .spotPanel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .spotPanel .flashcardFeedback {
+            position: static;
+            transform: none;
+            left: auto;
+            bottom: auto;
+            text-align: center;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.88em;
+            box-shadow: none;
+            min-height: 36px;
+            white-space: normal;
+        }
+
+        /* ── SVG state labels ── */
+        .state-label {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 42px;
+            font-weight: 700;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+            paint-order: stroke fill;
+            stroke: #fff;
+            stroke-width: 5px;
+            stroke-linejoin: round;
+            fill: #222;
+            opacity: 1;
+            transition: opacity 1.5s ease;
+        }
+        .state-label.explore {
+            font-size: 42px;
+            fill: #1a3a6e;
+            stroke: #fff;
+            stroke-width: 8px;
+        }
+        .state-label.wrong {
+            fill: #c0392b;
+            stroke: #fff;
+        }
+        .state-label.correct-answer {
+            fill: #1a5c2a;
+            stroke: #fff;
+        }
+        .state-label.fading {
+            opacity: 0;
+        }
+        /* Highlight for tapped states in Practice Full Map mode */
+        #svg1625 .exploredFill {
+            fill: #b3d4f5 !important;
+            transition: fill 0.2s ease;
+        }
+        /* Highlight for target state in Spot the State mode */
+        #svg1625 .spotHighlight {
+            fill: #f0a500 !important;
+            transition: fill 0.3s ease;
         }
 
     </style>
 </head>
 <body onload="init();">
-  <div class="topAlertHolder flx vrt hddn">
+
+  <!-- ── Startup mode-picker modal (always shown on load) ── -->
+  <div class="startModal" id="startModal">
+    <div class="startCard">
+      <div class="startHeader">
+        <div class="startLogo">🗺️</div>
+        <h2>States of India</h2>
+        <p>Choose how you want to play</p>
+      </div>
+      <div class="startModes" id="startModes">
+        <button class="startModeBtn" data-mode="">
+          <span class="startModeIcon">🗺️</span>
+          <span class="startModeName">Map Quiz</span>
+          <span class="startModeDesc">Tap states on the full India map</span>
+        </button>
+        <button class="startModeBtn" data-mode="map-practice">
+          <span class="startModeIcon">🧭</span>
+          <span class="startModeName">Practice Full Map</span>
+          <span class="startModeDesc">Tap any state to reveal its name</span>
+        </button>
+        <button class="startModeBtn" data-mode="states">
+          <span class="startModeIcon">🏛️</span>
+          <span class="startModeName">Capitals</span>
+          <span class="startModeDesc">Find the state for each capital city</span>
+        </button>
+        <!-- <button class="startModeBtn" data-mode="ne">
+          <span class="startModeIcon">🌿</span>
+          <span class="startModeName">North East</span>
+          <span class="startModeDesc">Focus on the 8 north-eastern states</span>
+        </button> -->
+        <button class="startModeBtn" data-mode="identify">
+          <span class="startModeIcon">🔍</span>
+          <span class="startModeName">Identify</span>
+          <span class="startModeDesc">See a shape, pick from 4 options</span>
+        </button>
+        <button class="startModeBtn" data-mode="spot">
+          <span class="startModeIcon">📍</span>
+          <span class="startModeName">Spot the State</span>
+          <span class="startModeDesc">Highlighted on map — name it from the list</span>
+        </button>
+        <button class="startModeBtn" data-mode="spot-mcq">
+          <span class="startModeIcon">🎲</span>
+          <span class="startModeName">Spot — Quick Pick</span>
+          <span class="startModeDesc">Highlighted on map — pick from 4 options</span>
+        </button>
+        <button class="startModeBtn" data-mode="flashcard-practice">
+          <span class="startModeIcon">📖</span>
+          <span class="startModeName">Practice</span>
+          <span class="startModeDesc">Browse state shapes with name shown</span>
+        </button>
+        <button class="startModeBtn" data-mode="flashcard-quiz">
+          <span class="startModeIcon">🎯</span>
+          <span class="startModeName">Quiz</span>
+          <span class="startModeDesc">Identify shapes — no name shown</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- End-of-round alert banner -->
+  <div class="topAlertHolder hddn">
     <div class="alertMessage">You have some states wrong.</div>
     <div class="dvLink dsplyNone">try again</div>
+    <div class="dvLink dsplyNone" id="showAnswersLink">show correct answers</div>
   </div>
-    <div class="flx mainContainer vrt">
-        <div class="flx vrt bulletHolderMain">
-            <!-- container to house indicators for questions answered correct, incorrect, and pending  -->
-            <div class="flx bulletHolder jstfyContentSpaceEvenly"></div>
-            <div class="flx bulletHolder jstfyContentSpaceEvenly"></div>
 
+  <!-- Settings panel -->
+  <div class="settingsPanel" id="settingsPanel">
+    <h3>Settings</h3>
+    <div class="settingRow">
+      <label>Quiz Mode</label>
+      <div class="modeOptions" id="modeOptions">
+        <label class="modeOption selected" data-mode="">
+          <input type="radio" name="quizMode" value="" checked> All States
+        </label>
+        <label class="modeOption" data-mode="map-practice">
+          <input type="radio" name="quizMode" value="map-practice"> Practice Full Map
+        </label>
+        <label class="modeOption" data-mode="states">
+          <input type="radio" name="quizMode" value="states"> State Capitals
+        </label>
+        <label class="modeOption" data-mode="ne">
+          <input type="radio" name="quizMode" value="ne"> North East States
+        </label>
+        <label class="modeOption" data-mode="identify">
+          <input type="radio" name="quizMode" value="identify"> Identify the State
+        </label>
+        <label class="modeOption" data-mode="spot">
+          <input type="radio" name="quizMode" value="spot"> Spot the State
+        </label>
+        <label class="modeOption" data-mode="spot-mcq">
+          <input type="radio" name="quizMode" value="spot-mcq"> Spot — Quick Pick
+        </label>
+        <label class="modeOption" data-mode="flashcard-practice">
+          <input type="radio" name="quizMode" value="flashcard-practice"> Flashcard — Practice
+        </label>
+        <label class="modeOption" data-mode="flashcard-quiz">
+          <input type="radio" name="quizMode" value="flashcard-quiz"> Flashcard — Quiz
+        </label>
+      </div>
+    </div>
+    <div class="toggleRow">
+      <span>Show Timer</span>
+      <label class="toggleSwitch">
+        <input type="checkbox" id="timerToggle" checked>
+        <span class="toggleSlider"></span>
+      </label>
+    </div>
+    <div class="toggleRow">
+      <span>Show Labels</span>
+      <label class="toggleSwitch">
+        <input type="checkbox" id="labelsToggle" checked>
+        <span class="toggleSlider"></span>
+      </label>
+    </div>
+    <button class="applyBtn" id="applySettings">Apply & Restart</button>
+  </div>
+
+  <div class="pageWrapper">
+
+    <!-- Top bar: progress bullets + gear icon + timer -->
+    <div class="topBar">
+      <div class="bulletHolderMain">
+        <div class="bulletHolder" id="bulletRow1"></div>
+        <div class="bulletHolder" id="bulletRow2"></div>
+      </div>
+      <div class="topBarRight">
+        <button class="gearBtn" id="gearBtn" title="Settings" aria-label="Open settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+        <div class="timerRow" id="timerRow">
+          <svg class="timerIcon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span class="timerDisplay" id="timerDisplay">00:00</span>
         </div>
-        <div class="questionHolder">
-            Arunachal Pradesh
-        </div>
-        <div class="flx jstfyContentSpaceEvenly">
-            <div class="mapHolder">
-                <!-- house map -->
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="statsRow">
+      <span class="statItem statCorrect">
+        <span class="statIcon">✔</span> correct <span class="statVal" id="statCorrectVal">00</span>
+      </span>
+      <span class="statItem statWrong">
+        <span class="statIcon">✖</span> wrong <span class="statVal" id="statWrongVal">00</span>
+      </span>
+      <span class="statItem statStreak">
+        <span class="statIcon">⚡</span> Streak: <span class="statVal" id="statStreakVal">00</span>
+      </span>
+    </div>
+
+    <!-- Question + Info icon + Skip -->
+    <div class="questionRow">
+      <div class="questionHolder">Arunachal Pradesh</div>
+      <button class="infoBtn" id="infoBtn" title="Show hint" aria-label="Show hint">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="8"/>
+          <line x1="12" y1="11" x2="12" y2="17"/>
+        </svg>
+        <div class="hintTooltip" id="hintTooltip">Hint loading…</div>
+      </button>
+      <div class="questionRowSpacer"></div>
+      <button class="skipBtn" id="skipBtn">Skip <span class="skipArrow">››</span></button>
+    </div>
+
+    <!-- Spot the State: dropdown + submit, shown above the map in spot mode -->
+    <div id="spotPanel" class="spotPanel dsplyNone">
+      <div class="flashcardDropdownRow">
+        <select class="flashcardSelect" id="spotSelect">
+          <option value="">— Which state is this? —</option>
+        </select>
+        <button class="flashcardSkip" id="spotSkipBtn">Skip</button>
+        <button class="flashcardSubmit" id="spotSubmit">Submit</button>
+      </div>
+      <div class="flashcardFeedback fc-empty" id="spotFeedback"></div>
+    </div>
+
+
+
+    <!-- Identify mode: isolated state + MCQ options (hidden in other modes) -->
+    <div id="identifyPanel" class="dsplyNone">
+      <div class="isolatedMapHolder">
+        <div id="isolatedStateImg" class="isolatedStateImg"></div>
+        <button class="skipBtn identifySkipBtn" id="identifySkipBtn">Skip <span class="skipArrow">››</span></button>
+      </div>
+      <div class="mcqOptions" id="mcqOptions">
+        <button class="mcqBtn" id="mcqBtn0"></button>
+        <button class="mcqBtn" id="mcqBtn1"></button>
+        <button class="mcqBtn" id="mcqBtn2"></button>
+        <button class="mcqBtn" id="mcqBtn3"></button>
+      </div>
+    </div>
+
+    <!-- Flashcard mode panel (hidden in other modes) -->
+    <div id="flashcardPanel" class="flashcardPanel dsplyNone">
+
+      <!-- Practice mode: state name + prev/next nav -->
+      <div id="fcPracticeNav" class="fcPracticeNav dsplyNone">
+        <button class="fcNavBtn" id="fcPrevBtn">&#8592; Prev</button>
+        <span class="fcPracticeName" id="fcPracticeName"></span>
+        <button class="fcNavBtn" id="fcNextBtn">Next &#8594;</button>
+      </div>
+
+      <!-- Quiz mode: hidden name spacer (keeps layout height) -->
+      <div id="fcQuizSpacer" class="fcQuizSpacer dsplyNone">&nbsp;</div>
+
+      <div class="flashcardImgHolder" id="fcImgHolder">
+        <div class="flashcardFeedback fc-empty" id="fcFeedback"></div>
+      </div>
+
+      <!-- Quiz: dropdown + skip + submit -->
+      <div class="flashcardDropdownRow dsplyNone" id="fcDropdownRow">
+        <select class="flashcardSelect" id="fcSelect">
+          <option value="">— Select a state —</option>
+        </select>
+        <button class="flashcardSkip" id="fcSkipBtn">Skip</button>
+        <button class="flashcardSubmit" id="fcSubmit">Submit</button>
+      </div>
+    </div>
+
+    <!-- Map (hidden in identify/flashcard mode) -->
+    <div class="mapHolder" id="mainMapHolder">
+        <!-- house map -->
                 <!-- <svg class="svgStyle" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink" width="95vw" height="70vh" viewBox="0 0 1513 1680"> -->
                   <svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg1625" xml:space="preserve" enable-background="new 0 0 1594 1868" viewBox="0 0 1594 1868" height="1868" width="1594" version="1.1"><metadata id="metadata1629"><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title>Political Map of India</dc:title></cc:Work></rdf:RDF></metadata>
                     <title id="title1223">Political Map of India</title>
@@ -783,19 +1609,28 @@
                         stroke-width: 4;
                       }
                     </style></svg>
-            </div>
+    </div><!-- /mainMapHolder -->
+
+    <!-- Spot Quick Pick: chips + skip below the map -->
+    <div id="spotMcqPanel" class="spotMcqPanel dsplyNone">
+      <div class="spotMcqRow">
+        <div class="spotMcqOptions" id="spotMcqOptions">
+          <button class="mcqBtn" id="spotMcqBtn0"></button>
+          <button class="mcqBtn" id="spotMcqBtn1"></button>
+          <button class="mcqBtn" id="spotMcqBtn2"></button>
+          <button class="mcqBtn" id="spotMcqBtn3"></button>
         </div>
+        <button class="flashcardSkip spotMcqSkip" id="spotMcqSkipBtn">Skip</button>
+      </div>
     </div>
+
     <div class="footer_attribution">
       <div style="text-decoration: underline;">Credits</div>
-      <!-- <div>map of India used from</div>
-      <a href="https://commons.wikimedia.org/wiki/File:States_and_UTs_of_India_(unlabelled).svg">Saravask and KCVelaga</a>, <a href="https://creativecommons.org/licenses/by-sa/4.0">CC BY-SA 4.0</a>, via Wikimedia Commons -->
     </div>
-    <audio id="correctAudio">
-      <source src="bell.mp3"></source>
-    </audio>
-    <audio id="inCorrectAudio">
-      <source src="glassbreak.mp3"></source>
-    </audio>
+
+  </div><!-- /pageWrapper -->
+
+  <audio id="correctAudio"><source src="bell.mp3"></audio>
+  <audio id="inCorrectAudio"><source src="glassbreak.mp3"></audio>
 </body>
 </html>
