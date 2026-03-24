@@ -1,10 +1,10 @@
 // ── State data ───────────────────────────────────────────────────
 
-let dataState_full = {"mh":["Maharashtra","mumbai","nagpur"],"gj":["Gujarat","gandhinagar"],"jh":["Jharkhand","Ranchi"],"up":["Uttar Pradesh","Lucknow"],"hp":["Himachal","Shimla","Dharamshala"],"kl":["Kerala","Trivandrum"],"ka":["Karnataka","Bengaluru"],"ga":["Goa","Panaji"],"tn":["Tamil Nadu","Chennai"],"ap":["Andhra Pradesh","Amaravati"],"tg":["Telangana","Hyderabad"],"ct":["Chattisgarh","Raipur"],"or":["Oddisha","Bhubaneswar"],"br":["Bihar","Patna"],"mp":["Madhya Pradesh"],"rj":["Rajasthan","Jaipur"],"pb":["Punjab","Chandigarh"],"hr":["Haryana","Chandigarh"],"ut":["Uttarakhand","Bhararisain","Dehradun"],"sk":["Sikkim","Gangtok"],"wb":["West Bengal","Kolkatta"],"ar":["Arunachal Pradesh","Itanagar"],"as":["Assam","Dispur"],"nl":["Nagaland","Kohima"],"mn":["Manipur","Imphal"],"mz":["Mizoram","Aizawl"],"tr":["Tripura","Agartala"],"ml":["Meghalaya","Shillong"]}
+let dataState_full = {"mh":["Maharashtra","mumbai","nagpur"],"gj":["gujarat","gandhinagar"],"jh":["Jharkhand","Ranchi"],"up":["Uttar Pradesh","Lucknow"],"hp":["Himachal","Shimla","Dharamshala"],"kl":["Kerala","Trivandrum"],"ka":["Karnataka","Bengaluru"],"ga":["Goa","Panaji"],"tn":["Tamil Nadu","Chennai"],"ap":["Andhra Pradesh","Amaravati"],"tg":["Telangana","Hyderabad"],"ct":["Chattisgarh","Raipur"],"or":["Oddisha","Bhubaneswar"],"br":["Bihar","Patna"],"mp":["Madhya Pradesh"],"rj":["Rajasthan","Jaipur"],"pb":["Punjab","Chandigarh"],"hr":["Haryana","Chandigarh"],"ut":["Uttarakhand","Bhararisain","Dehradun"],"sk":["Sikkim","Gangtok"],"wb":["West Bengal","Kolkatta"],"ar":["Arunachal Pradesh","Itanagar"],"as":["Assam","Dispur"],"nl":["Nagaland","Kohima"],"mn":["Manipur","Imphal"],"mz":["Mizoram","Aizawl"],"tr":["Tripura","Agartala"],"ml":["Meghalaya","Shillong"]}
 
 let dataState_NE = {"sk":["Sikkim","Gangtok"],"ar":["Arunachal Pradesh","Itanagar"],"as":["Assam","Dispur"],"nl":["Nagaland","Kohima"],"mn":["Manipur","Imphal"],"mz":["Mizoram","Aizawl"],"tr":["Tripura","Agartala"],"ml":["Meghalaya","Shillong"]}
 
-let dataState_shortened = {"mh":["Maharashtra","mumbai"],"gj":["Gujarat","gandhinagar"],"wb":["West Bengal","Kolkatta"],"tn":["Tamil Nadu","Chennai"]}
+let dataState_shortened = {"mh":["Maharashtra","mumbai"],"gj":["gujarat","gandhinagar"],"wb":["West Bengal","Kolkatta"],"tn":["Tamil Nadu","Chennai"]}
 
 // ── Hints (keyed by 2-letter state code) ─────────────────────────
 
@@ -616,10 +616,60 @@ function removeIncorrectFill() {
 // ── Audio — silent fail if file missing ─────────────────────────
 
 function playSound(param) {
-    let el = document.querySelector(param === "correct" ? "#correctAudio" : "#inCorrectAudio");
-    if (!el) return;
-    let p = el.play();
-    if (p && typeof p.catch === 'function') p.catch(function() {});
+    if (param === "correct") {
+        // Play the bell audio file as before
+        let el = document.querySelector("#correctAudio");
+        if (!el) return;
+        let p = el.play();
+        if (p && typeof p.catch === 'function') p.catch(function() {});
+        return;
+    }
+
+    // Incorrect: synthesised soft wah-wah trombone via Web Audio API
+    try {
+        let ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // Two descending notes: first "wah" then lower "wah"
+        let notes = [
+            { freq: 440, startTime: 0,    duration: 0.22 },
+            { freq: 311, startTime: 0.22, duration: 0.28 }
+        ];
+
+        notes.forEach(function(note) {
+            let osc    = ctx.createOscillator();
+            let gain   = ctx.createGain();
+            // Muted trombone tone: sawtooth softened with a low-pass filter
+            let filter = ctx.createBiquadFilter();
+
+            osc.type      = 'sawtooth';
+            osc.frequency.setValueAtTime(note.freq, ctx.currentTime + note.startTime);
+            // Slight downward pitch slide for the "wah" droop
+            osc.frequency.linearRampToValueAtTime(
+                note.freq * 0.80,
+                ctx.currentTime + note.startTime + note.duration
+            );
+
+            filter.type            = 'lowpass';
+            filter.frequency.value = 900;   // muffles the harsh high harmonics
+            filter.Q.value         = 1.2;
+
+            // Envelope: quick attack, hold, then fade out
+            gain.gain.setValueAtTime(0, ctx.currentTime + note.startTime);
+            gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + note.startTime + 0.04);
+            gain.gain.setValueAtTime(0.18, ctx.currentTime + note.startTime + note.duration - 0.06);
+            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + note.startTime + note.duration);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(ctx.currentTime + note.startTime);
+            osc.stop(ctx.currentTime + note.startTime + note.duration);
+        });
+
+        // Close context shortly after sound ends
+        setTimeout(function() { ctx.close(); }, 800);
+    } catch(e) { /* silent fail if Web Audio unavailable */ }
 }
 
 // ── Identify mode rendering ──────────────────────────────────────
