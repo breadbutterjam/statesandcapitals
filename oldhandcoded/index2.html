@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>States of India</title>
+    <script src="jQuery.js"></script>
+    <script src="code2.js"></script>
+
+    <style>
+        #svg1625{
+            height: 80vh;
+            width: 50vw;
+        }
+
+        .dsplyNone{
+          display: none;
+        }
+
+        .hddn{
+          opacity: 0;
+        }
+
+        .topAlertHolder{
+          position: absolute;
+          width: 100vw;
+          height: 2em;
+          top: 0px;
+          left: 0px;
+          
+        }
+        .footer_attribution
+        {
+          position: absolute;
+          bottom: 20px;
+          left: 0px;
+          font-size: 0.5em;
+          text-align: center;
+          width: 100%;
+        }
+
+        .noWrong{
+          background-color: lightgreen;
+        }
+
+        .someWrong{
+          background-color: lightsalmon;
+        }
+
+        .alertMessage,.dvLink{
+          font-size: 0.8em;
+          text-align: center;
+          font-family: sans-serif;
+        }
+
+        .dvLink{
+          text-decoration: underline;
+        }
+
+        .noWrong > .alertMessage{
+          padding: 0.8em;
+        }
+
+     
+
+        body{
+            margin: 20px;
+            /* background-color: gray; */
+        }
+
+        .correctBullet{
+            background-color: lightgreen;
+        }
+
+        .wrongBullet{
+            background-color: red;
+        }
+
+        .flx{
+            display: flex;
+        }
+
+        .vrt{
+            flex-direction: column;
+        }
+
+        .mainContainer{
+            padding-top:1em;
+        }
+
+        .bulletHolder{
+            margin-bottom: 0.5em;
+        }
+
+        .jstfyContentSpaceEvenly{
+            justify-content: space-evenly;
+        }
+
+
+
+        .bullet{
+            border: 1px solid black;
+            border-radius: 50px;
+            height: 1em;
+            width: 1em;
+        }
+
+        .questionHolder{
+            text-align: center;
+            font-size: 2em;
+            /* margin-top: 0.5em; */
+            margin-bottom: 0.5em;
+            text-transform: capitalize;
+        }
+
+        .keyboardHolder{
+            display: none;
+            background-color: lightgrey;
+            width: 100vw;
+            position: absolute;
+            bottom: 0px;
+            height: 40vh;
+            left: 0px;
+            justify-content: space-between;
+        }
+
+        .keyHolderRow{
+            background-color: lightblue;
+            height: 9vh;
+            justify-content: center;
+        }
+
+        .indKey{
+            background-color: azure;
+            border-radius: 0.3em;
+            text-align: center;
+            margin-left: 0.2em;
+            margin-right: 0.2em;
+            line-height: 2em;
+            text-transform: capitalize;
+            font-family: sans-serif;
+            padding-top: 1em;
+            padding-bottom: 0.8em;
+            padding-left: 2em;
+            padding-right: 2em;
+
+        }
+
+        @media only screen and (max-width: 600px) {
+
+        }
+            .indKey{
+                width: 10vw;
+                padding-left: initial;
+                padding-right: initial;
+            }
+
+            .lastRowKey{
+                width: 20vw;
+                padding-top: 0.6em;
+                padding-bottom: 0.6em;
+                margin-left: 2.5em;
+                margin-right: 2.5em;
+            }
+
+            .keyHolderRow.lastRowHolder{
+                height: 7vh;
+            }
+         
+            .questionMessage{
+                text-align: center;
+                margin-top: 1.5em;
+            }
+
+            .capitalAnswer{
+                border-bottom: 1px solid;
+                height: 1.7em;
+                line-height: 2em;
+                text-align: center;
+                font-family: sans-serif;
+                font-size: 3em;
+                padding-bottom: 0px;
+                width: 100%;
+                border-left: transparent;
+                border-right: transparent;
+                border-top: transparent;
+            }
+
+            .buttonHolder{
+                margin-top: 2em;
+                justify-content: center;
+            }
+
+            .btn{
+                background-color: lightblue;
+                padding: 1em;
+                border-radius: 0.5em;
+                margin-right: 0.5em;
+                margin-left: 0.5em;
+                font-family: sans-serif;
+                border: 1px solid #0003;
+            }
+
+            .answerResponse{
+                width: 100%;
+                height: 1em;
+                text-align: center;
+                margin-top: 0.3em;
+                padding-top: 0.5em;
+                padding-bottom: 0.5em;
+
+            }
+
+            .wrongResponse{
+                color: red;
+                background-color: lightyellow;
+            }
+
+            .correctResponse{
+                color: white;
+                background-color: darkgreen;
+
+            }
+        
+    </style>
+</head>
+<body onload="init();">
+    <div class="topAlertHolder flx vrt hddn">
+        <div class="alertMessage">You have some states wrong.</div>
+        <div class="dvLink dsplyNone">try again</div>
+      </div>
+    <div class="flx mainContainer vrt">
+        <div class="flx vrt bulletHolderMain">
+            <!-- container to house indicators for questions answered correct, incorrect, and pending  -->
+            <div class="flx bulletHolder jstfyContentSpaceEvenly"></div>
+            <div class="flx bulletHolder jstfyContentSpaceEvenly"></div>
+
+        </div>
+        <div class="questionMessage">
+            what is the capital of  
+        </div>
+        <div class="questionHolder">
+            Arunachal Pradesh
+        </div>
+        <div class="answerHolder">
+            <!-- <div contenteditable class="capitalAnswer">Gandhinagar</div> -->
+            <input type="text" id="capitalAnswer" class="capitalAnswer" value=""/>
+        </div>
+        <div class="answerResponse hddn"></div>
+        <div class="buttonHolder flx">
+            <div class="btn btnClear">Clear</div>
+            <div class="btn btnCheck">Check</div>
+        </div>
+    </div>
+    <div class="keyboardHolder flx vrt">
+        <div class="keyHolderRow flx"></div>
+        <div class="keyHolderRow flx"></div>
+        <div class="keyHolderRow flx"></div>
+        <div class="keyHolderRow flx lastRowHolder"></div>
+    </div> 
+</body>
+</html>
