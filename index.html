@@ -804,7 +804,7 @@
   <!-- Settings panel -->
   <div class="settingsPanel" id="settingsPanel">
     <h3>Settings</h3>
-    <div class="settingRow">
+    <!-- <div class="settingRow">
       <label>Quiz Mode</label>
       <div class="modeOptions" id="modeOptions">
         <label class="modeOption selected" data-mode="">
@@ -835,7 +835,7 @@
           <input type="radio" name="quizMode" value="flashcard-quiz"> Flashcard — Quiz
         </label>
       </div>
-    </div>
+    </div> -->
     <div class="toggleRow">
       <span>Show Timer</span>
       <label class="toggleSwitch">
@@ -850,7 +850,14 @@
         <span class="toggleSlider"></span>
       </label>
     </div>
-    <button class="applyBtn" id="applySettings">Apply & Restart</button>
+    <div class="toggleRow">
+      <span>Sounds</span>
+      <label class="toggleSwitch">
+        <input type="checkbox" id="soundToggle" checked>
+        <span class="toggleSlider"></span>
+      </label>
+    </div>
+    <!-- <button class="applyBtn" id="applySettings">Apply & Restart</button> -->
   </div>
 
   <div class="pageWrapper">

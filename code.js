@@ -66,7 +66,7 @@ let currentStreak     = 0;
 let arrSpecialStates = ["wb", "tn"];
 
 let labelsEnabled = true;
-
+let soundEnabled = true;
 // ── Timer state ──────────────────────────────────────────────────
 
 let timerInterval = null;
@@ -139,6 +139,15 @@ function init() {
             if (!labelsEnabled) removeAllStateLabels();
         });
     }
+
+    let soundToggle = document.getElementById('soundToggle');
+    if (soundToggle) {
+        soundToggle.addEventListener('change', function() {
+            // Handle sound toggle logic here
+            soundEnabled = soundToggle.checked;
+        });
+    }
+    
     // Skip button (map modes)
     document.getElementById('skipBtn').addEventListener('click', skipCurrent);
     // Skip button (identify mode)
@@ -174,6 +183,8 @@ function setupStartModal() {
 }
 
 function startGame(mode) {
+    window.scrollTo(0, 0);  
+    // console.log(mode + " mode starting...");
     // Restore elements that practice/map-practice mode may have hidden
     document.querySelector('.topBar').classList.remove('dsplyNone');
     document.querySelector('.statsRow').classList.remove('dsplyNone');
@@ -616,6 +627,7 @@ function removeIncorrectFill() {
 // ── Audio — silent fail if file missing ─────────────────────────
 
 function playSound(param) {
+    if(soundEnabled === false) return;
     if (param === "correct") {
         // Play the bell audio file as before
         let el = document.querySelector("#correctAudio");
@@ -1197,7 +1209,7 @@ function initSettingsPanel() {
         });
     });
 
-    applyBtn.addEventListener('click', function() {
+    /* applyBtn.addEventListener('click', function() {
         let selected = document.querySelector('.modeOption.selected');
         let mode = selected ? selected.getAttribute('data-mode') : '';
         panel.classList.remove('visible');
@@ -1205,7 +1217,7 @@ function initSettingsPanel() {
         stopTimer();
         removeAllStateLabels();
         startGame(mode);
-    });
+    }); */
 
     document.addEventListener('click', function(e) {
         if (!panel.contains(e.target) && e.target !== gearBtn) {
