@@ -183,7 +183,13 @@ function setupStartModal() {
 }
 
 function startGame(mode) {
-    window.scrollTo(0, 0);  
+    window.scrollTo(0, 0);
+    if (mode === 'quiz-mode'){
+        document.querySelector('#svg1625').classList.add('moveMapUp');     
+    } else if (mode === 'spot'){
+        document.querySelector('#svg1625').classList.add('moveMapUp3x');
+    }
+    
     // console.log(mode + " mode starting...");
     // Restore elements that practice/map-practice mode may have hidden
     document.querySelector('.topBar').classList.remove('dsplyNone');
@@ -242,7 +248,7 @@ function startGame(mode) {
     } else if (mode === 'spot-mcq') {
         dataState = JSON.parse(JSON.stringify(dataState_full));
         bSpotMcqMode = true;
-    } else {
+    } else if (mode === 'quiz-mode') {
         dataState = JSON.parse(JSON.stringify(dataState_full));
     }
 

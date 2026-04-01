@@ -7,6 +7,8 @@
     <script src="code.js"></script>
 
     <style>
+
+
         /* ── Reset & base ── */
         *, *::before, *::after { box-sizing: border-box; }
 
@@ -17,6 +19,15 @@
             background: #f7f7f7;
             color: #222;
             overflow-x: hidden;
+        }
+
+        .moveMapUp{
+          transform: translateY(-10px); /* move up */
+        }
+
+        /* moving map up for  */
+        .moveMapUp3x{
+          transform: translateY(-30px); 
         }
 
         /* ── Utility ── */
@@ -156,7 +167,7 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            margin-bottom: 12px;
+            /* margin-bottom: 12px; */
             min-height: 2.4em;
             gap: 6px;
         }
@@ -669,23 +680,14 @@
         .spotMcqMapFeedback.fc-empty   { opacity: 0; }
 
         .spotPanel {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
             margin-bottom: 10px;
         }
-        .spotPanel .flashcardFeedback {
-            position: static;
-            transform: none;
-            left: auto;
+        #spotFeedback {
+            top: 8px;
             bottom: auto;
             text-align: center;
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-size: 0.88em;
-            box-shadow: none;
-            min-height: 36px;
             white-space: normal;
+            max-width: calc(100% - 32px);
         }
 
         /* ── SVG state labels ── */
@@ -745,7 +747,7 @@
         <p>Choose how you want to play</p>
       </div>
       <div class="startModes" id="startModes">
-        <button class="startModeBtn" data-mode="">
+        <button class="startModeBtn" data-mode="quiz-mode">
           <span class="startModeIcon">🗺️</span>
           <span class="startModeName">Find the State</span>
           <span class="startModeDesc">Tap the correct state on the map</span>
@@ -921,10 +923,7 @@
         <button class="flashcardSkip" id="spotSkipBtn">Skip</button>
         <button class="flashcardSubmit" id="spotSubmit">Submit</button>
       </div>
-      <div class="flashcardFeedback fc-empty" id="spotFeedback"></div>
     </div>
-
-
 
     <!-- Identify mode: isolated state + MCQ options (hidden in other modes) -->
     <div id="identifyPanel" class="dsplyNone">
@@ -969,6 +968,7 @@
 
     <!-- Map (hidden in identify/flashcard mode) -->
     <div class="mapHolder" id="mainMapHolder">
+        <div class="flashcardFeedback fc-empty" id="spotFeedback"></div>
         <!-- house map -->
                 <!-- <svg class="svgStyle" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink" width="95vw" height="70vh" viewBox="0 0 1513 1680"> -->
                   <svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="svg1625" xml:space="preserve" enable-background="new 0 0 1594 1868" viewBox="0 0 1594 1868" height="1868" width="1594" version="1.1"><metadata id="metadata1629"><rdf:RDF><cc:Work rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/><dc:title>Political Map of India</dc:title></cc:Work></rdf:RDF></metadata>
@@ -1641,3 +1641,5 @@
   <audio id="inCorrectAudio"><source src="glassbreak.mp3"></audio>
 </body>
 </html>
+
+
