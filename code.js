@@ -67,6 +67,17 @@ let arrSpecialStates = ["wb", "tn"];
 
 let labelsEnabled = true;
 let soundEnabled = true;
+const modeLabels = {
+    "quiz-mode": "Find the State",
+    "map-practice": "Explore the Map",
+    "states": "Match the Capital",
+    "ne": "North East",
+    "identify": "Guess the State",
+    "spot": "Name the State",
+    "spot-mcq": "Pick the State",
+    "flashcard-practice": "Learn the Shapes",
+    "flashcard-quiz": "Recall the State"
+};
 // ── Timer state ──────────────────────────────────────────────────
 
 let timerInterval = null;
@@ -79,6 +90,40 @@ function updateStats() {
     document.getElementById('statCorrectVal').textContent = pad(arrCorrect.length);
     document.getElementById('statWrongVal').textContent   = pad(arrWrong.length);
     document.getElementById('statStreakVal').textContent  = pad(currentStreak);
+}
+
+function updateTitleBar(mode) {
+    const titleBar = document.getElementById('titleBar');
+    const titleBarText = document.getElementById('titleBarText');
+    const titleBarMode = document.getElementById('titleBarMode');
+    const modeLabel = modeLabels[mode] || "";
+
+    titleBarText.textContent = "States of India";
+    titleBarMode.textContent = modeLabel ? modeLabel : "";
+    titleBar.classList.toggle('dsplyNone', !modeLabel);
+}
+
+function showModeSelection() {
+    let modal = document.getElementById('startModal');
+    let banner = document.querySelector('.topAlertHolder');
+    let showAnswersLink = document.getElementById('showAnswersLink');
+    let infoBtn = document.getElementById('infoBtn');
+    let settingsPanel = document.getElementById('settingsPanel');
+    let gearBtn = document.getElementById('gearBtn');
+
+    stopTimer();
+    removeAllStateLabels();
+
+    if (banner) {
+        banner.classList.add('hddn');
+        banner.classList.remove('noWrong', 'someWrong');
+    }
+    document.querySelector('.dvLink').classList.add('dsplyNone');
+    if (showAnswersLink) showAnswersLink.classList.add('dsplyNone');
+    if (infoBtn) infoBtn.classList.remove('active');
+    if (settingsPanel) settingsPanel.classList.remove('visible');
+    if (gearBtn) gearBtn.classList.remove('open');
+    if (modal) modal.classList.remove('hddn');
 }
 
 // ── Timer ────────────────────────────────────────────────────────
@@ -147,6 +192,13 @@ function init() {
             soundEnabled = soundToggle.checked;
         });
     }
+
+    let titleBarClose = document.getElementById('titleBarClose');
+    if (titleBarClose) {
+        titleBarClose.addEventListener('click', function() {
+            showModeSelection();
+        });
+    }
     
     // Skip button (map modes)
     document.getElementById('skipBtn').addEventListener('click', skipCurrent);
@@ -184,6 +236,7 @@ function setupStartModal() {
 
 function startGame(mode) {
     window.scrollTo(0, 0);
+    updateTitleBar(mode);
     if (mode === 'quiz-mode'){
         document.querySelector('#svg1625').classList.add('moveMapUp');     
     } else if (mode === 'spot'){
