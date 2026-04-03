@@ -49,30 +49,96 @@
         .hddn      { opacity: 0; pointer-events: none; }
 
         /* ── Top alert banner (end-of-round) ── */
-        .topAlertHolder {
+        /* ── End-of-round modal ── */
+        .endModal {
             position: fixed;
+            inset: 0;
+            z-index: 400;
+            background: rgba(0,0,0,0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(3px);
+            transition: opacity 0.25s;
+        }
+        .endModal.hddn { display: none; }
+        .endCard {
+            background: #1e1e1e;
+            border-radius: 20px;
+            padding: 28px 24px 24px;
             width: 100%;
-            top: 0; left: 0;
-            z-index: 300;
+            max-width: 360px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 0.5em 1em;
-            transition: opacity 0.3s;
+            gap: 18px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.4);
         }
-        .noWrong  { background: #c6f0d0; color: #222;}
-        .someWrong{ background: #ffd6cc; color: #222;}
-        .alertMessage, .dvLink {
-            font-size: 0.85em;
-            font-family: inherit;
+        .endEmoji {
+            font-size: 3em;
+            line-height: 1;
+        }
+        .endTitle {
+            font-size: 1.25em;
+            font-weight: 800;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+        .endStats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+        .endStat {
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .endStatVal {
+            font-size: 1.6em;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .endStatLabel {
+            font-size: 0.65em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
             text-align: center;
         }
-        .dvLink {
-            text-decoration: underline;
-            cursor: pointer;
-            margin-top: 2px;
+        .endStat.end-correct .endStatVal { color: #4caf50; }
+        .endStat.end-wrong   .endStatVal { color: #e53935; }
+        .endStat.end-time    .endStatVal { color: #aaa; }
+        .endActions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
         }
+        .endBtn {
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-size: 0.92em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.15s, transform 0.12s;
+        }
+        .endBtn:hover  { opacity: 0.88; transform: translateY(-1px); }
+        .endBtn:active { transform: translateY(0); }
+        .endBtn-primary   { background: #4a9e6b; color: #fff; }
+        .endBtn-secondary { background: #2a2a2a; color: #ccc; border: 1.5px solid #3a3a3a; }
+        .endBtn-tertiary  { background: transparent; color: #666; font-weight: 500; font-size: 0.82em; }
 
         /* ── Page wrapper ── */
         .pageWrapper {
@@ -856,11 +922,31 @@
     </div>
   </div>
 
-  <!-- End-of-round alert banner -->
-  <div class="topAlertHolder hddn">
-    <div class="alertMessage">You have some states wrong.</div>
-    <div class="dvLink dsplyNone">try again</div>
-    <div class="dvLink dsplyNone" id="showAnswersLink">show correct answers</div>
+  <!-- End-of-round modal -->
+  <div class="endModal hddn" id="endModal">
+    <div class="endCard">
+      <div class="endEmoji" id="endEmoji">🎉</div>
+      <p class="endTitle" id="endTitle">All states correct!</p>
+      <div class="endStats">
+        <div class="endStat end-correct">
+          <span class="endStatVal" id="endCorrectVal">0</span>
+          <span class="endStatLabel">Correct</span>
+        </div>
+        <div class="endStat end-wrong">
+          <span class="endStatVal" id="endWrongVal">0</span>
+          <span class="endStatLabel">Wrong</span>
+        </div>
+        <div class="endStat end-time">
+          <span class="endStatVal" id="endTimeVal">0:00</span>
+          <span class="endStatLabel">Time</span>
+        </div>
+      </div>
+      <div class="endActions">
+        <button class="endBtn endBtn-primary dsplyNone" id="endTryAgainBtn">Try Again</button>
+        <button class="endBtn endBtn-secondary dsplyNone" id="endShowAnswersBtn">Show correct answers</button>
+        <button class="endBtn endBtn-tertiary" id="endNewModeBtn">Choose another mode</button>
+      </div>
+    </div>
   </div>
 
   <!-- Settings panel -->

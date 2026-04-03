@@ -105,21 +105,14 @@ function updateTitleBar(mode) {
 
 function showModeSelection() {
     let modal = document.getElementById('startModal');
-    let banner = document.querySelector('.topAlertHolder');
-    let showAnswersLink = document.getElementById('showAnswersLink');
     let infoBtn = document.getElementById('infoBtn');
     let settingsPanel = document.getElementById('settingsPanel');
     let gearBtn = document.getElementById('gearBtn');
 
     stopTimer();
     removeAllStateLabels();
+    hideEndModal();
 
-    if (banner) {
-        banner.classList.add('hddn');
-        banner.classList.remove('noWrong', 'someWrong');
-    }
-    document.querySelector('.dvLink').classList.add('dsplyNone');
-    if (showAnswersLink) showAnswersLink.classList.add('dsplyNone');
     if (infoBtn) infoBtn.classList.remove('active');
     if (settingsPanel) settingsPanel.classList.remove('visible');
     if (gearBtn) gearBtn.classList.remove('open');
@@ -248,14 +241,25 @@ function startGame(mode) {
     document.querySelector('.topBar').classList.remove('dsplyNone');
     document.querySelector('.statsRow').classList.remove('dsplyNone');
 
+    // Detach any previous stateClicked handlers BEFORE stripping cls-2
+    $('.cls-2').off('click');
+
     // Clear any explored-state highlights from previous map-practice session
     document.querySelectorAll('.exploredFill').forEach(function(el) {
         el.classList.remove('exploredFill');
     });
-    // Clear spot highlights and hide spot panel
+    // Clear spot highlights
     document.querySelectorAll('.spotHighlight').forEach(function(el) {
         el.classList.remove('spotHighlight');
     });
+    // Reset all SVG state fills (correct=lightgreen, wrong=lightsalmon) and answered class
+    document.querySelectorAll('#svg1625 .answered, #svg1625 .wrongFill, #svg1625 .cls-2').forEach(function(el) {
+        el.style.fill = '';
+        el.classList.remove('answered', 'wrongFill', 'cls-2');
+    });
+    // Remove all state labels from previous round
+    removeAllStateLabels();
+
     document.getElementById('spotPanel').classList.add('dsplyNone');
 
     // Reset all state
@@ -402,7 +406,7 @@ function startGame(mode) {
 // ── Event listeners ──────────────────────────────────────────────
 
 function addEventListeners() {
-    $('.cls-2').on("click", stateClicked);
+    $('.cls-2').off('click').on('click', stateClicked);
 }
 
 // ── Skip ─────────────────────────────────────────────────────────
@@ -588,60 +592,70 @@ function markAns(result, clickedStateId) {
 
 function showTopAlert() {
     stopTimer();
-    let banner = document.querySelector(".topAlertHolder");
-    banner.classList.remove("hddn");
 
-    if (arrWrong.length === 0) {
-        banner.classList.add("noWrong");
-        document.querySelector(".alertMessage").innerText = "You identified all states correctly!";
+    let perfect = arrWrong.length === 0;
+    let n = arrWrong.length;
+
+    // Populate stats
+    document.getElementById('endEmoji').textContent      = perfect ? '🎉' : '😬';
+    document.getElementById('endTitle').textContent      = perfect
+        ? 'All states correct!'
+        : 'You got ' + n + ' state' + (n > 1 ? 's' : '') + ' wrong.';
+    document.getElementById('endCorrectVal').textContent = arrCorrect.length;
+    document.getElementById('endWrongVal').textContent   = n;
+    document.getElementById('endTimeVal').textContent    = formatTime(timerSeconds);
+
+    // Show / hide action buttons
+    let tryAgainBtn    = document.getElementById('endTryAgainBtn');
+    let showAnswersBtn = document.getElementById('endShowAnswersBtn');
+
+    if (perfect) {
+        tryAgainBtn.classList.add('dsplyNone');
+        showAnswersBtn.classList.add('dsplyNone');
     } else {
-        banner.classList.add("someWrong");
-        let link = document.querySelector('.dvLink');
-        link.classList.remove("dsplyNone");
-        link.addEventListener("click", tryAgain, { once: true });
-        let showAnswersLink = document.getElementById('showAnswersLink');
-        if (showAnswersLink) showAnswersLink.classList.remove("dsplyNone");
-        let n = arrWrong.length;
-        document.querySelector(".alertMessage").innerText =
-            "You got " + n + " state" + (n > 1 ? "s" : "") + " wrong.";
+        tryAgainBtn.classList.remove('dsplyNone');
+        showAnswersBtn.classList.remove('dsplyNone');
+        tryAgainBtn.onclick    = tryAgain;
+        showAnswersBtn.onclick = function() {
+            hideEndModal();
+            showCorrectAnswers();
+        };
     }
+
+    document.getElementById('endNewModeBtn').onclick = function() {
+        hideEndModal();
+        setupStartModal();
+    };
+
+    document.getElementById('endModal').classList.remove('hddn');
+}
+
+function hideEndModal() {
+    let modal = document.getElementById('endModal');
+    modal.classList.add('hddn');
+}
+
+function formatTime(secs) {
+    let m = Math.floor(secs / 60);
+    let s = secs % 60;
+    return m + ':' + String(s).padStart(2, '0');
 }
 
 function tryAgain() {
-    let banner = document.querySelector(".topAlertHolder");
-    banner.classList.add("hddn");
-    banner.classList.remove("noWrong", "someWrong");
-    document.querySelector('.dvLink').classList.add("dsplyNone");
-    let showAnswersLink = document.getElementById('showAnswersLink');
-    if (showAnswersLink) showAnswersLink.classList.add("dsplyNone");
-
+    hideEndModal();
     removeAllStateLabels();
 
-    if (bFlashcardMode) {
-        fcSetFeedback('', '');
-    }
+    if (bFlashcardMode) { fcSetFeedback('', ''); }
     if (bSpotMode) {
         spotSetFeedback('', '');
-        document.querySelectorAll('.spotHighlight').forEach(function(el) {
-            el.classList.remove('spotHighlight');
-        });
+        document.querySelectorAll('.spotHighlight').forEach(function(el) { el.classList.remove('spotHighlight'); });
     }
     if (bSpotMcqMode) {
         spotMcqSetFeedback('', '');
-        document.querySelectorAll('.spotHighlight').forEach(function(el) {
-            el.classList.remove('spotHighlight');
-        });
+        document.querySelectorAll('.spotHighlight').forEach(function(el) { el.classList.remove('spotHighlight'); });
     }
 
-    document.querySelectorAll('.wrongBullet').forEach(function(el) {
-        el.classList.remove("wrongBullet");
-    });
-
-    // Determine current mode string to restart same mode
-    let currentMode = '';
-    if (bFlashcardMode)       currentMode = 'flashcard';
-    else if (bIdentifyMode)   currentMode = 'identify';
-    else if (bCheckWithStateCapital) currentMode = 'states';
+    document.querySelectorAll('.wrongBullet').forEach(function(el) { el.classList.remove('wrongBullet'); });
 
     arrSkipped    = arrWrong.slice();
     arrWrong      = [];
@@ -1362,11 +1376,5 @@ function showCorrectAnswers() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    let showAnswersLink = document.getElementById('showAnswersLink');
-    if (showAnswersLink) {
-        showAnswersLink.addEventListener('click', function() {
-            showCorrectAnswers();
-            showAnswersLink.classList.add('dsplyNone');
-        });
-    }
+    // showAnswersLink now handled inline in showTopAlert via endShowAnswersBtn
 });
