@@ -61,6 +61,7 @@ let nextBulletSlot = 0;
 
 let currentStateIndex = null;
 let currentStreak     = 0;
+let currentGameMode   = '';   // set at startGame, used by recordGameResult
 
 // WB and TN are SVG <g> groups with child <path> elements
 let arrSpecialStates = ["wb", "tn"];
@@ -311,6 +312,7 @@ function startGame(mode) {
 
     arrAllStates = Object.keys(dataState);
     NUM_STATES   = arrAllStates.length - 1;
+    currentGameMode = mode;
 
     let isPractice = (bFlashcardMode && !bFlashcardHard) || bMapPractice;
 
@@ -596,6 +598,13 @@ function showTopAlert() {
     let perfect = arrWrong.length === 0;
     let n = arrWrong.length;
 
+    // Record stats for scored (non-practice) modes
+    let isPracticeMode = bMapPractice || (bFlashcardMode && !bFlashcardHard);
+    let newBadges = [];
+    if (!isPracticeMode) {
+        newBadges = recordGameResult(currentGameMode, arrCorrect.length, n, currentStreak, timerSeconds);
+    }
+
     // Populate stats
     document.getElementById('endEmoji').textContent      = perfect ? '🎉' : '😬';
     document.getElementById('endTitle').textContent      = perfect
@@ -628,6 +637,11 @@ function showTopAlert() {
     };
 
     document.getElementById('endModal').classList.remove('hddn');
+
+    // Show badge toast if any newly earned
+    if (newBadges.length > 0) {
+        setTimeout(function() { showBadgeToast(newBadges); }, 600);
+    }
 }
 
 function hideEndModal() {
@@ -1378,3 +1392,238 @@ function showCorrectAnswers() {
 document.addEventListener('DOMContentLoaded', function() {
     // showAnswersLink now handled inline in showTopAlert via endShowAnswersBtn
 });
+
+// ── Stats & Badges Engine ────────────────────────────────────────
+
+const STATS_KEY = 'indiaQuizStats';
+
+const MODE_META = {
+    '':                 { icon: '🗺️',  label: 'Map Quiz' },
+    'map-practice':     { icon: '🧭',  label: 'Practice Map' },
+    'states':           { icon: '🏛️',  label: 'Capitals' },
+    'ne':               { icon: '🌿',  label: 'North East' },
+    'identify':         { icon: '🔍',  label: 'Identify' },
+    'spot':             { icon: '📍',  label: 'Spot the State' },
+    'spot-mcq':         { icon: '🎲',  label: 'Spot Quick Pick' },
+    'flashcard-practice':{ icon: '📖', label: 'FC Practice' },
+    'flashcard-quiz':   { icon: '🎯',  label: 'FC Quiz' },
+};
+
+const BADGE_DEFS = [
+    { id: 'first_game',   emoji: '🎮', label: 'First Game',    desc: 'Complete your first game' },
+    { id: 'perfect_1',    emoji: '⭐', label: 'Perfect!',      desc: 'Finish a round with no wrong answers' },
+    { id: 'perfect_5',    emoji: '🌟', label: 'Flawless x5',   desc: '5 perfect rounds' },
+    { id: 'streak_5',     emoji: '🔥', label: 'Hot Streak',    desc: 'Reach a streak of 5 in one game' },
+    { id: 'streak_10',    emoji: '💥', label: 'On Fire',       desc: 'Reach a streak of 10 in one game' },
+    { id: 'streak_20',    emoji: '🚀', label: 'Unstoppable',   desc: 'Reach a streak of 20 in one game' },
+    { id: 'daily_3',      emoji: '📅', label: '3-Day Run',     desc: 'Play 3 days in a row' },
+    { id: 'daily_7',      emoji: '🗓️', label: 'Week Warrior',  desc: 'Play 7 days in a row' },
+    { id: 'all_modes',    emoji: '🏆', label: 'Explorer',      desc: 'Try all 8 quiz modes' },
+    { id: 'speed_demon',  emoji: '⚡', label: 'Speed Demon',   desc: 'Perfect round in under 90s' },
+    { id: 'centurion',    emoji: '💯', label: 'Centurion',     desc: '100 correct answers total' },
+    { id: 'daily_30',     emoji: '🔱', label: 'Dedicated',     desc: 'Play 30 days in a row' },
+];
+
+function loadStats() {
+    try {
+        let raw = localStorage.getItem(STATS_KEY);
+        if (raw) return JSON.parse(raw);
+    } catch(e) {}
+    return {
+        totalGames: 0,
+        totalCorrect: 0,
+        totalWrong: 0,
+        bestStreak: 0,
+        currentDayStreak: 0,
+        lastPlayedDate: null,
+        modesPlayed: [],
+        badges: [],
+        modes: {}
+    };
+}
+
+function saveStats(s) {
+    try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch(e) {}
+}
+
+function todayStr() {
+    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+// Called at end of every scored game round
+function recordGameResult(mode, correct, wrong, streak, timeSecs) {
+    let s = loadStats();
+
+    // Daily streak tracking
+    let today = todayStr();
+    let yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    if (s.lastPlayedDate === today) {
+        // already played today — no change to streak
+    } else if (s.lastPlayedDate === yesterday) {
+        s.currentDayStreak = (s.currentDayStreak || 0) + 1;
+    } else {
+        s.currentDayStreak = 1; // reset
+    }
+    s.lastPlayedDate = today;
+
+    // Global totals
+    s.totalGames   = (s.totalGames || 0) + 1;
+    s.totalCorrect = (s.totalCorrect || 0) + correct;
+    s.totalWrong   = (s.totalWrong || 0) + wrong;
+    if (streak > (s.bestStreak || 0)) s.bestStreak = streak;
+
+    // Mode stats
+    if (!s.modes) s.modes = {};
+    if (!s.modes[mode]) s.modes[mode] = { gamesPlayed: 0, bestStreak: 0, perfectRuns: 0, bestTime: null };
+    let m = s.modes[mode];
+    m.gamesPlayed = (m.gamesPlayed || 0) + 1;
+    if (streak > (m.bestStreak || 0)) m.bestStreak = streak;
+    if (wrong === 0) {
+        m.perfectRuns = (m.perfectRuns || 0) + 1;
+        if (m.bestTime === null || timeSecs < m.bestTime) m.bestTime = timeSecs;
+    }
+
+    // Modes tried
+    if (!s.modesPlayed) s.modesPlayed = [];
+    if (s.modesPlayed.indexOf(mode) === -1) s.modesPlayed.push(mode);
+
+    // Badge evaluation
+    if (!s.badges) s.badges = [];
+    let newBadges = [];
+    function earn(id) {
+        if (s.badges.indexOf(id) === -1) { s.badges.push(id); newBadges.push(id); }
+    }
+    earn('first_game');
+    if (wrong === 0)               earn('perfect_1');
+    if (m.perfectRuns >= 5)        earn('perfect_5');
+    if (streak >= 5)               earn('streak_5');
+    if (streak >= 10)              earn('streak_10');
+    if (streak >= 20)              earn('streak_20');
+    if (s.currentDayStreak >= 3)   earn('daily_3');
+    if (s.currentDayStreak >= 7)   earn('daily_7');
+    if (s.currentDayStreak >= 30)  earn('daily_30');
+    if (s.modesPlayed.length >= 8) earn('all_modes');
+    if (wrong === 0 && timeSecs <= 90) earn('speed_demon');
+    if (s.totalCorrect >= 100)     earn('centurion');
+
+    saveStats(s);
+    return newBadges;
+}
+
+// ── Stats panel UI ───────────────────────────────────────────────
+
+function renderStatsPanel() {
+    let s = loadStats();
+
+    // Daily streak
+    document.getElementById('spDayStreak').textContent = s.currentDayStreak || 0;
+    let sub = document.getElementById('spDayStreakSub');
+    if (!s.lastPlayedDate) {
+        sub.textContent = 'Play today to start a streak!';
+    } else if (s.lastPlayedDate === todayStr()) {
+        sub.textContent = 'Played today ✓';
+    } else {
+        let yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        sub.textContent = s.lastPlayedDate === yesterday
+            ? 'Play today to keep your streak!'
+            : 'Streak ended — start again today';
+    }
+
+    // Global
+    document.getElementById('spTotalGames').textContent   = s.totalGames || 0;
+    document.getElementById('spBestStreak').textContent   = s.bestStreak || 0;
+    document.getElementById('spTotalCorrect').textContent = s.totalCorrect || 0;
+
+    // Per-mode rows
+    let table = document.getElementById('spModeTable');
+    table.innerHTML = '';
+    let quizModes = Object.keys(MODE_META).filter(function(k) { return k !== 'map-practice' && k !== 'flashcard-practice'; });
+    quizModes.forEach(function(modeKey) {
+        let meta = MODE_META[modeKey];
+        let ms   = (s.modes && s.modes[modeKey]) || {};
+        let row  = document.createElement('div');
+        row.className = 'statsModeRow';
+        row.innerHTML =
+            '<span class="statsModeIcon">' + meta.icon + '</span>' +
+            '<span class="statsModeName">' + meta.label + '</span>' +
+            '<div class="statsModeVals">' +
+              '<div class="statsModeVal"><span>' + (ms.gamesPlayed || 0) + '</span><span>played</span></div>' +
+              '<div class="statsModeVal"><span>' + (ms.bestStreak || 0) + '</span><span>streak</span></div>' +
+              '<div class="statsModeVal"><span>' + (ms.perfectRuns || 0) + '</span><span>perfect</span></div>' +
+            '</div>';
+        table.appendChild(row);
+    });
+
+    // Badges
+    let grid = document.getElementById('spBadgeGrid');
+    grid.innerHTML = '';
+    BADGE_DEFS.forEach(function(def) {
+        let earned = s.badges && s.badges.indexOf(def.id) > -1;
+        let cell = document.createElement('div');
+        cell.className = 'badge' + (earned ? ' earned' : '');
+        cell.title = def.desc;
+        cell.innerHTML =
+            '<span class="badgeEmoji">' + def.emoji + '</span>' +
+            '<span class="badgeLabel">' + def.label + '</span>';
+        grid.appendChild(cell);
+    });
+}
+
+function initStatsPanel() {
+    let btn   = document.getElementById('podiumBtn');
+    let panel = document.getElementById('statsPanel');
+    let close = document.getElementById('statsPanelClose');
+
+    btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        let isOpen = panel.classList.toggle('visible');
+        btn.classList.toggle('active', isOpen);
+        // Close settings if open
+        document.getElementById('settingsPanel').classList.remove('visible');
+        document.getElementById('gearBtn').classList.remove('open');
+        if (isOpen) renderStatsPanel();
+    });
+
+    close.addEventListener('click', function() {
+        panel.classList.remove('visible');
+        btn.classList.remove('active');
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!panel.contains(e.target) && e.target !== btn) {
+            panel.classList.remove('visible');
+            btn.classList.remove('active');
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initStatsPanel);
+
+// ── Badge toast notification ─────────────────────────────────────
+
+function showBadgeToast(badgeIds) {
+    // Show one toast per new badge, staggered
+    badgeIds.forEach(function(id, i) {
+        let def = BADGE_DEFS.find(function(b) { return b.id === id; });
+        if (!def) return;
+        setTimeout(function() {
+            let toast = document.createElement('div');
+            toast.className = 'badgeToast';
+            toast.innerHTML =
+                '<span class="badgeToastEmoji">' + def.emoji + '</span>' +
+                '<div class="badgeToastText">' +
+                  '<span class="badgeToastTitle">Badge Unlocked!</span>' +
+                  '<span class="badgeToastName">' + def.label + '</span>' +
+                '</div>';
+            document.body.appendChild(toast);
+            // Trigger animation
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() { toast.classList.add('show'); });
+            });
+            setTimeout(function() {
+                toast.classList.remove('show');
+                setTimeout(function() { toast.remove(); }, 400);
+            }, 3000);
+        }, i * 600);
+    });
+}

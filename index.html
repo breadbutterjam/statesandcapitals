@@ -235,8 +235,25 @@
             align-items: center;
             gap: 4px;
         }
-
-        /* ── Gear button ── */
+        .topBarIcons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        /* ── Podium button ── */
+        .podiumBtn {
+            flex-shrink: 0;
+            background: transparent;
+            border: none;
+            padding: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .podiumBtn svg { display: block; transition: stroke 0.2s; }
+        .podiumBtn:hover svg { stroke: #f0c040 !important; }
+        .podiumBtn.active svg { stroke: #f0c040 !important; }
         .gearBtn {
             flex-shrink: 0;
             background: transparent;
@@ -504,7 +521,198 @@
             margin-top: 16px;
         }
 
-        /* ── Startup mode-picker modal ── */
+        /* ── Stats & Badges panel ── */
+        .statsPanel {
+            position: fixed;
+            top: 44px; right: 14px;
+            z-index: 200;
+            background: #1e1e1e;
+            border: 1.5px solid #333;
+            border-radius: 14px;
+            padding: 0;
+            width: min(320px, calc(100vw - 28px));
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            font-family: inherit;
+            font-size: 0.85em;
+            opacity: 0;
+            transform: translateY(-8px) scale(0.97);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            overflow: hidden;
+        }
+        .statsPanel.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: all;
+        }
+        .statsPanelHeader {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px 10px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .statsPanelTitle {
+            font-size: 0.88em;
+            font-weight: 700;
+            color: #f0c040;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .statsPanelClose {
+            background: none; border: none; color: #555;
+            font-size: 1em; cursor: pointer; padding: 2px 4px;
+            line-height: 1;
+        }
+        .statsPanelClose:hover { color: #ccc; }
+        .statsPanelBody {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        /* Global overview row */
+        .statsGlobal {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .statsGlobalItem {
+            background: #252525;
+            border-radius: 10px;
+            padding: 10px 6px;
+            text-align: center;
+        }
+        .statsGlobalVal {
+            font-size: 1.5em;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+        }
+        .statsGlobalLabel {
+            font-size: 0.6em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 3px;
+        }
+        .statsGlobalItem.streak-item .statsGlobalVal { color: #f0c040; }
+        .statsGlobalItem.days-item .statsGlobalVal   { color: #4fc3f7; }
+        /* Section heading */
+        .statsSectionTitle {
+            font-size: 0.7em;
+            font-weight: 700;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+        }
+        /* Per-mode table */
+        .statsModeTable {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .statsModeRow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #252525;
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+        .statsModeIcon { font-size: 1em; flex-shrink: 0; }
+        .statsModeName {
+            flex: 1;
+            color: #bbb;
+            font-size: 0.82em;
+            font-weight: 500;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .statsModeVals {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .statsModeVal {
+            text-align: right;
+            min-width: 28px;
+        }
+        .statsModeVal span:first-child {
+            display: block;
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1;
+        }
+        .statsModeVal span:last-child {
+            display: block;
+            font-size: 0.58em;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        /* Badges */
+        .badgeGrid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 4px;
+            border-radius: 10px;
+            background: #252525;
+            border: 1.5px solid #2a2a2a;
+            transition: border-color 0.2s;
+        }
+        .badge.earned {
+            background: #1e2a1e;
+            border-color: #3a5c3a;
+        }
+        .badge.earned .badgeEmoji { filter: none; }
+        .badgeEmoji {
+            font-size: 1.5em;
+            line-height: 1;
+            filter: grayscale(1) opacity(0.3);
+        }
+        .badgeLabel {
+            font-size: 0.55em;
+            color: #555;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .badge.earned .badgeLabel { color: #888; }
+        /* Daily streak flame */
+        .dayStreakRow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #252525;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .dayStreakFlame { font-size: 1.6em; }
+        .dayStreakInfo { flex: 1; }
+        .dayStreakVal {
+            font-size: 1.2em;
+            font-weight: 800;
+            color: #f0c040;
+        }
+        .dayStreakSub {
+            font-size: 0.68em;
+            color: #555;
+            margin-top: 1px;
+        }
+        /* Startup modal CSS */
         .startModal {
             position: fixed;
             inset: 0;
@@ -624,7 +832,7 @@
             transition: border-color 0.15s, background 0.15s, color 0.15s;
             line-height: 1.3;
         }
-        /* .mcqBtn:hover:not(:disabled) { border-color: #1a73e8; background: #f0f6ff; color: #1a73e8; } */
+        .mcqBtn:hover:not(:disabled) { border-color: #1a73e8; background: #f0f6ff; color: #1a73e8; }
         .mcqBtn.correct  { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; pointer-events: none; }
         .mcqBtn.wrong    { border-color: #e53935; background: #ffebee; color: #c62828; pointer-events: none; }
         .mcqBtn.reveal   { border-color: #4caf50; background: #e8f5e9; color: #2e7d32; pointer-events: none; }
@@ -860,6 +1068,35 @@
             transition: fill 0.3s ease;
         }
 
+        /* ── Badge toast ── */
+        .badgeToast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1e1e1e;
+            border: 1.5px solid #3a5c3a;
+            border-radius: 14px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .badgeToast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .badgeToastEmoji { font-size: 1.8em; line-height: 1; }
+        .badgeToastText  { display: flex; flex-direction: column; gap: 1px; }
+        .badgeToastTitle { font-size: 0.62em; color: #f0c040; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+        .badgeToastName  { font-size: 0.88em; color: #fff; font-weight: 700; }
+
     </style>
 </head>
 <body onload="init();">
@@ -949,6 +1186,52 @@
     </div>
   </div>
 
+  <!-- Stats & Badges panel -->
+  <div class="statsPanel" id="statsPanel">
+    <div class="statsPanelHeader">
+      <span class="statsPanelTitle">📊 Stats &amp; Badges</span>
+      <button class="statsPanelClose" id="statsPanelClose">✕</button>
+    </div>
+    <div class="statsPanelBody">
+      <!-- Daily streak -->
+      <div class="dayStreakRow">
+        <span class="dayStreakFlame">🔥</span>
+        <div class="dayStreakInfo">
+          <div class="dayStreakVal"><span id="spDayStreak">0</span> day streak</div>
+          <div class="dayStreakSub" id="spDayStreakSub">Play today to start a streak!</div>
+        </div>
+      </div>
+      <!-- Global numbers -->
+      <div>
+        <div class="statsSectionTitle">All-time</div>
+        <div class="statsGlobal">
+          <div class="statsGlobalItem">
+            <div class="statsGlobalVal" id="spTotalGames">0</div>
+            <div class="statsGlobalLabel">Games</div>
+          </div>
+          <div class="statsGlobalItem streak-item">
+            <div class="statsGlobalVal" id="spBestStreak">0</div>
+            <div class="statsGlobalLabel">Best Streak</div>
+          </div>
+          <div class="statsGlobalItem">
+            <div class="statsGlobalVal" id="spTotalCorrect">0</div>
+            <div class="statsGlobalLabel">Correct</div>
+          </div>
+        </div>
+      </div>
+      <!-- Per-mode stats -->
+      <div>
+        <div class="statsSectionTitle">By Mode</div>
+        <div class="statsModeTable" id="spModeTable"></div>
+      </div>
+      <!-- Badges -->
+      <div>
+        <div class="statsSectionTitle">Badges</div>
+        <div class="badgeGrid" id="spBadgeGrid"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Settings panel -->
   <div class="settingsPanel" id="settingsPanel">
     <h3>Settings</h3>
@@ -1022,12 +1305,21 @@
         <div class="bulletHolder" id="bulletRow2"></div>
       </div>
       <div class="topBarRight">
-        <button class="gearBtn" id="gearBtn" title="Settings" aria-label="Open settings">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-          </svg>
-        </button>
+        <div class="topBarIcons">
+          <button class="podiumBtn" id="podiumBtn" title="Stats &amp; Badges" aria-label="Open stats">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2"  y="10" width="5"  height="11" rx="1"/>
+              <rect x="9"  y="5"  width="6"  height="16" rx="1"/>
+              <rect x="17" y="13" width="5"  height="8"  rx="1"/>
+            </svg>
+          </button>
+          <button class="gearBtn" id="gearBtn" title="Settings" aria-label="Open settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+        </div>
         <div class="timerRow" id="timerRow">
           <svg class="timerIcon" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
